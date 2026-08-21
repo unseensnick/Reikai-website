@@ -37,7 +37,7 @@ const sidebar = [
     items: [
       // Reikai's own FAQ leads: it answers what the app is and where to get it, which is what a
       // first-time reader is here for. The rest is Mihon's, covering behaviour both apps share.
-      { text: 'Reikai', link: '/docs/FAQ' },
+      { text: 'Reikai', link: '/docs/about' },
       { text: 'General', link: '/docs/faq/general' },
       { text: 'Library', link: '/docs/faq/library' },
       {
@@ -137,7 +137,7 @@ export default defineConfig({
           { text: 'Changelogs', link: '/changelogs/' },
         ],
       },
-      { text: 'Docs', link: '/docs/FAQ', activeMatch: '^/docs/' },
+      { text: 'Docs', link: '/docs/about', activeMatch: '^/docs/' },
     ],
 
     // Mihon's depth: headings two and three deep, so a long settings page can be navigated from the
