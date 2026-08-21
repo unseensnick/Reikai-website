@@ -23,6 +23,7 @@ const sidebar = [
       { text: 'Download', link: '/download/' },
       { text: 'Changelogs', link: '/changelogs/' },
       { text: 'Related apps', link: '/related/' },
+      { text: 'Privacy policy', link: '/privacy/' },
     ],
   },
   {
@@ -123,7 +124,7 @@ export default defineConfig({
         // Mihon's shape: one "Get" entry that opens onto the download page and the changelog,
         // rather than two top-level items competing for the same intent.
         text: 'Get Reikai',
-        activeMatch: '^/(download|changelogs|related)',
+        activeMatch: '^/(download|changelogs|related|privacy)',
         items: [
           { text: 'Download', link: '/download/' },
           { text: 'Changelogs', link: '/changelogs/' },
@@ -147,13 +148,18 @@ export default defineConfig({
     },
 
     footer: {
-      // Two licences, because they are two repositories: the site takes Mihon's since much of it
-      // derives from theirs, the app is Apache-2.0.
+      // Mihon's shape: a licence link, a privacy link, then the credit line. Two licences named,
+      // because these are two repositories: the site takes Mihon's, since much of it derives from
+      // theirs, and the app is Apache-2.0.
       message:
-        'Built on <a href="https://mihon.app">Mihon</a>. '
-        + 'Site under <a href="https://www.mozilla.org/MPL/2.0/">MPL-2.0</a>, '
-        + 'app under <a href="https://www.apache.org/licenses/LICENSE-2.0">Apache-2.0</a>.',
-      copyright: `<a href="${REPO}">github.com/unseensnick/Reikai</a>`,
+        '<a href="https://www.apache.org/licenses/LICENSE-2.0">Apache-2.0 app</a>'
+        + ' <span class="divider">|</span> '
+        + '<a href="https://www.mozilla.org/MPL/2.0/">MPL-2.0 site</a>'
+        + ' <span class="divider">|</span> '
+        + '<a href="/privacy/">Privacy policy</a>',
+      copyright:
+        `Copyright © ${new Date().getFullYear()} <a href="${REPO}">Reikai</a>`
+        + ' · Built on <a href="https://mihon.app">Mihon</a>',
     },
 
     search: { provider: 'local' },

@@ -102,6 +102,13 @@ function toggle(id: string) {
       :class="channel.tone"
     >
       <div class="rk-top">
+        <span class="rk-badge" :class="channel.tone" aria-hidden="true">
+          <span v-if="channel.tone === 'brand'" class="rk-badge-mark" />
+          <svg v-else viewBox="0 -960 960 960" width="22" height="22" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+            <path d="M200-120q-51 0-72.5-45.5T138-250l222-270v-240h-40q-17 0-28.5-11.5T280-800q0-17 11.5-28.5T320-840h320q17 0 28.5 11.5T680-800q0 17-11.5 28.5T640-760h-40v240l222 270q32 39 10.5 84.5T760-120H200Zm80-120h400L544-400H416L280-240Z"/>
+          </svg>
+        </span>
+
         <div class="rk-id">
           <h3 class="rk-title">{{ channel.title }}</h3>
           <p class="rk-desc">{{ channel.description }}</p>
@@ -209,7 +216,22 @@ function toggle(id: string) {
 }
 
 .rk-top { display: flex; flex-wrap: wrap; align-items: center; gap: 20px; }
-.rk-id { flex: 1 1 220px; }
+.rk-id { flex: 1 1 200px; }
+
+/* A round mark per channel, so the two cards are told apart before either is read. Reikai's own
+   icon goes in as a CSS mask rather than an <img>: it then takes the badge's colour and needs no
+   second file for the light theme. */
+.rk-badge {
+  display: grid; place-items: center; flex: 0 0 auto;
+  width: 48px; height: 48px; border-radius: 50%;
+  background: var(--vp-c-default-soft); color: var(--vp-c-text-1);
+}
+.rk-badge.brand { background: var(--vp-c-brand-soft); color: var(--vp-c-brand-1); }
+.rk-badge.warn { background: var(--vp-c-warning-soft); color: var(--vp-c-warning-1); }
+.rk-badge-mark {
+  width: 26px; height: 26px; background: currentColor;
+  mask: url('/favicon.svg') center / contain no-repeat;
+}
 .rk-title { margin: 0; font-size: 20px; font-weight: 700; line-height: 1.2; }
 .rk-desc { margin: 4px 0 0; color: var(--vp-c-text-2); font-size: 14px; }
 

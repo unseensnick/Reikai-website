@@ -44,6 +44,11 @@ where an absolute `/docs/...` asset URL resolves. Contributor material living in
 `scripts/sync-changelogs.mjs` generates the changelogs page from the GitHub releases API, filtered to
 the Mihon-era three-segment versions.
 
+The home page's hero is built from the app repo's showcase stills: run `make-frames.sh` in
+`.github/readme-images/showcase/` to put `p1a_manga_lib` and `p1b_novel_lib` in the device frame,
+then composite the two with the novel one behind at 90% and export a transparent WebP. One image
+serves both themes, which is why it is transparent rather than a light/dark pair.
+
 Both run automatically as part of `npm run dev` and `npm run build`, and both write into gitignored
 directories.
 
