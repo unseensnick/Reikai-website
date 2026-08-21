@@ -124,11 +124,10 @@ export default defineConfig({
         // Mihon's shape: one "Get" entry that opens onto the download page and the changelog,
         // rather than two top-level items competing for the same intent.
         text: 'Get Reikai',
-        activeMatch: '^/(download|changelogs|related|privacy)',
+        activeMatch: '^/(download|changelogs)',
         items: [
           { text: 'Download', link: '/download/' },
           { text: 'Changelogs', link: '/changelogs/' },
-          { text: 'Related apps', link: '/related/' },
         ],
       },
       { text: 'Docs', link: '/docs/FAQ', activeMatch: '^/docs/' },

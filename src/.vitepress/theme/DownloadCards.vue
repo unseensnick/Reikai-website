@@ -226,10 +226,14 @@ function toggle(id: string) {
   width: 48px; height: 48px; border-radius: 50%;
   background: var(--vp-c-default-soft); color: var(--vp-c-text-1);
 }
-.rk-badge.brand { background: var(--vp-c-brand-soft); color: var(--vp-c-brand-1); }
+/* Stable's badge is the larger one, the same way Mihon sizes its recommended card up. */
+.rk-badge.brand {
+  width: 64px; height: 64px;
+  background: var(--vp-c-brand-soft); color: var(--vp-c-brand-1);
+}
 .rk-badge.warn { background: var(--vp-c-warning-soft); color: var(--vp-c-warning-1); }
 .rk-badge-mark {
-  width: 26px; height: 26px; background: currentColor;
+  width: 38px; height: 38px; background: currentColor;
   mask: url('/favicon.svg') center / contain no-repeat;
 }
 .rk-title { margin: 0; font-size: 20px; font-weight: 700; line-height: 1.2; }
