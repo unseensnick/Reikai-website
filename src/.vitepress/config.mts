@@ -22,6 +22,7 @@ const sidebar = [
     items: [
       { text: 'Download', link: '/download/' },
       { text: 'Changelogs', link: '/changelogs/' },
+      { text: 'Related apps', link: '/related/' },
     ],
   },
   {
@@ -122,10 +123,11 @@ export default defineConfig({
         // Mihon's shape: one "Get" entry that opens onto the download page and the changelog,
         // rather than two top-level items competing for the same intent.
         text: 'Get Reikai',
-        activeMatch: '^/(download|changelogs)',
+        activeMatch: '^/(download|changelogs|related)',
         items: [
           { text: 'Download', link: '/download/' },
           { text: 'Changelogs', link: '/changelogs/' },
+          { text: 'Related apps', link: '/related/' },
         ],
       },
       { text: 'Docs', link: '/docs/FAQ', activeMatch: '^/docs/' },
@@ -145,7 +147,12 @@ export default defineConfig({
     },
 
     footer: {
-      message: 'Built on Mihon. Released under the Apache 2.0 License.',
+      // Two licences, because they are two repositories: the site takes Mihon's since much of it
+      // derives from theirs, the app is Apache-2.0.
+      message:
+        'Built on <a href="https://mihon.app">Mihon</a>. '
+        + 'Site under <a href="https://www.mozilla.org/MPL/2.0/">MPL-2.0</a>, '
+        + 'app under <a href="https://www.apache.org/licenses/LICENSE-2.0">Apache-2.0</a>.',
       copyright: `<a href="${REPO}">github.com/unseensnick/Reikai</a>`,
     },
 

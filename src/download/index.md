@@ -17,6 +17,8 @@ lastUpdated: false
 Reikai is an Android app and is not on Google Play or any other store. Download it here or from the
 [releases page](https://github.com/unseensnick/Reikai/releases). Anything calling itself Reikai
 anywhere else did not come from this project.
+
+Read the [General FAQ](/docs/faq/general) for more information.
 :::
 
 <DownloadCards group="primary" />

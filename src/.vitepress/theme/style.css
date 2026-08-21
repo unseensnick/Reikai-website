@@ -106,6 +106,50 @@ html.dark .only-light {
   margin-right: 6px;
 }
 
+/* Related apps: one card per project. No logos, because hotlinking another project's artwork is
+   rude and vendoring it means keeping it current. */
+.rk-apps {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 14px;
+  margin: 24px 0;
+}
+.rk-app {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 18px 20px;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 14px;
+  background: var(--vp-c-bg-soft);
+  text-decoration: none;
+  transition: border-color 0.2s;
+}
+.rk-app:hover {
+  border-color: var(--vp-c-brand-1);
+}
+.rk-app-name {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--vp-c-text-1);
+}
+.rk-app-tag {
+  align-self: flex-start;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--vp-c-default-soft);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--vp-c-text-3);
+}
+.rk-app-desc {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--vp-c-text-2);
+}
+
 /* Pages that turn the aside off would otherwise run the full width of the viewport, which leaves
    headings and cards hugging the left edge. Centre them on a comfortable measure instead. */
 .page-narrow .VPDoc .content-container {
