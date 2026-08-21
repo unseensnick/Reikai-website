@@ -34,22 +34,52 @@ GITHUB_TOKEN=... npm run dev           # bash
 
 ## How the content gets here
 
-The user docs are **not** stored in this repo. `scripts/sync-docs.mjs` reads them out of the app repo
-at build time, so there is never a second copy to drift from the code that invalidates it. It drops
-the dev-records footer and rewrites repo-relative links.
+**The docs are not stored in this repo.** `scripts/sync-docs.mjs` reads them out of the app repo at
+build time, so there is never a second copy to drift from the code that invalidates it. It walks the
+whole `docs/` tree and splits by extension: markdown goes to `src/docs/` with the dev-records footer
+dropped and repo-relative links rewritten, everything else is copied to `src/public/docs/`, which is
+where an absolute `/docs/...` asset URL resolves. Contributor material living in the same tree
+(`README.md`, `dev/`, `guides/PORTING.md`) is skipped.
 
 `scripts/sync-changelogs.mjs` generates the changelogs page from the GitHub releases API, filtered to
 the Mihon-era three-segment versions.
 
-Both run automatically as part of `npm run dev` and `npm run build`.
+Both run automatically as part of `npm run dev` and `npm run build`, and both write into gitignored
+directories.
 
 ## Checking your work
 
-`npm run build` fails on dead links, so it is the real check. `npm run preview` then serves the built
-output, which is what to look at when you want production behaviour: the release data is inlined at
-build time rather than hydrated.
+`npm run build` fails on dead links, so run it. But it is not much of a check on its own: **most
+rendering failures leave the build green.** Read the built HTML in `src/.vitepress/dist`, or drive
+the served page, before believing a page is fine.
+
+Three that have bitten, all silent:
+
+- `::: tabs` without `vitepress-plugin-tabs` renders as the literal `:::` text.
+- A missing `.only-light` / `.only-dark` rule shows both screenshots of a light/dark pair, stacked.
+- Without `markdown: { headers: true }` every page builds with `headers: []`, so the "On this page"
+  aside draws its title over nothing.
+
+`npm run preview` serves the built output, which is what to look at for production behaviour: the
+release data is inlined at build time rather than hydrated. Restart it after a rebuild rather than
+reloading, or you will chase a fix that already landed.
 
 ## Credit
 
-The `<nav>` shortcode and its icon paths come from [Mihon's website](https://github.com/mihonapp/website),
-which is MPL-2.0. The navigation map itself is Reikai's own, because the app's navigation differs.
+Parts of this site come from [Mihon's website](https://github.com/mihonapp/website): the `<nav>`
+shortcode mechanism and its icon paths, the `.tree` folder-diagram styles, and the light/dark image
+pair rules. The navigation map itself is Reikai's own, because the app's navigation differs.
+
+The guides under `docs/guides/` and `docs/faq/` in the app repo are adapted from Mihon's too, and
+carry their own attribution there.
+
+## License
+
+Mihon's website is MPL-2.0, and enough of this one derives from it that the whole repo is MPL-2.0 as
+well. The Reikai app itself is a separate repository under Apache-2.0.
+
+<pre>
+This Source Code Form is subject to the terms of the Mozilla Public
+License, v. 2.0. If a copy of the MPL was not distributed with this
+file, You can obtain one at http://mozilla.org/MPL/2.0/.
+</pre>
