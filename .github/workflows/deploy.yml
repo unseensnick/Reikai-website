@@ -7,8 +7,11 @@ name: Deploy site
 on:
   push:
     branches: [main]
-  # The docs live in the app repo, so a docs change there does not push here. Run this by hand after
-  # one, or add a repository_dispatch from that repo later.
+  # The docs live in the app repo, so a change there does not push here. That repo's deploy-docs.yml
+  # sends this event once its push has landed, which is the ordering that matters: a deploy started
+  # before the push checks out the old docs and publishes a stale site.
+  repository_dispatch:
+    types: [docs-updated]
   workflow_dispatch:
 
 permissions:
@@ -23,28 +26,30 @@ concurrency:
 
 env:
   # The branch of the app repo the docs are read from, and the ref that links into that repo point
-  # at. Both become `main` once the 0.4.0 cycle merges.
-  APP_REF: feat/0.4.0
+  # at. A dispatch from that repo names the branch it came from, so the literal below is only the
+  # fallback for a push here or a manual run, and it does not have to be edited when a release
+  # branch changes.
+  APP_REF: ${{ github.event.client_payload.ref || 'feat/0.4.0' }}
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - name: Check out the site
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           path: website
 
       - name: Check out the app repo for its docs
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: unseensnick/Reikai
           ref: ${{ env.APP_REF }}
           path: app
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
-          node-version: 22
+          node-version: 24
           cache: npm
           cache-dependency-path: website/package-lock.json
 
@@ -61,9 +66,9 @@ jobs:
           # come up empty rather than failing, so this is worth passing.
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - uses: actions/configure-pages@v5
+      - uses: actions/configure-pages@v6
 
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: website/src/.vitepress/dist
 
@@ -75,4 +80,4 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
