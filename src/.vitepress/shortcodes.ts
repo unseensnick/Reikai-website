@@ -72,6 +72,9 @@ const navigation: Record<string, NavEntry> = {
   'browse': { name: 'Browse', icon: icons.browse, under: 'settings' },
   'security-and-privacy': { name: 'Security and privacy', icon: icons.security, under: 'settings' },
   'advanced': { name: 'Advanced', icon: icons.advanced, under: 'settings' },
+  // A screen of its own, pushed from the Library settings. It needs an entry so a doc can render the
+  // whole path as chips: half a chip chain followed by hand-typed arrows breaks colour mid-path.
+  'recommendations': { name: 'Recommendations', under: 'library' },
   // Only present once adult sources are switched on, which is why the docs say so before using it.
   'e-hentai': { name: 'E-Hentai', under: 'settings' },
   'mangadex': { name: 'MangaDex', under: 'settings' },
@@ -89,8 +92,13 @@ function render(key: string): string {
     return `<strong style="color:var(--vp-c-danger-1)">Unknown navigation "${key}"</strong>`
   }
   const chip = `<span class="shortcode navigation">${entry.icon ?? ''}<span class="name">${entry.name}</span></span>`
-  return entry.under ? `${render(entry.under)} -> ${chip}` : chip
+  return entry.under ? `${render(entry.under)}${SEPARATOR}${chip}` : chip
 }
+
+// Mihon emits a bare " -> " between chips, which lands outside the coloured span and so renders in
+// body text at body colour: the path visibly changes colour at every step. One arrow, styled with
+// the chips, reads as a single path.
+const SEPARATOR = '<span class="shortcode navigation separator">→</span>'
 
 export default {
   nav: {

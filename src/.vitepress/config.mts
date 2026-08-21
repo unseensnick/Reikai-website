@@ -67,7 +67,7 @@ const sidebar = [
         items: [
           { text: 'Common issues', link: '/docs/guides/troubleshooting/common-issues' },
           { text: 'Diagnosis', link: '/docs/guides/troubleshooting/diagnosis' },
-          { text: 'FlareSolverr', link: '/docs/flaresolverr' },
+          { text: 'Cloudflare bypass', link: '/docs/flaresolverr' },
         ],
       },
       { text: 'Source migration', link: '/docs/guides/source-migration' },
