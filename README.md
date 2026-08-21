@@ -34,14 +34,13 @@ the features it adds on top of Mihon work.
 - **Related apps**, the other readers in the same lineage, and a **privacy policy** covering what
   the app stores and what it sends.
 
-**Deployed to GitHub Pages** at `https://unseensnick.github.io/Reikai-website/`, built by
+**Live at [reikai.app](https://reikai.app)**, deployed to GitHub Pages by
 `.github/workflows/deploy.yml` on every push to `main`. The docs live in the app repo, so a change
 there does not trigger a build: run the workflow by hand after one.
 
-The site is served from a project page, so `base` in `src/.vitepress/config.mts` is
-`/Reikai-website/`. VitePress prefixes markdown links, raw HTML `src` attributes and CSS `url()` for
-you; it does **not** touch hand-written strings in the config or a Vue template, so those go through
-the `BASE` constant or `withBase()`. Changing the base means checking both.
+`src/public/CNAME` is what holds the domain. It has to be in the built output, because an Actions
+deploy replaces the site wholesale each run and would drop a `CNAME` that only existed in the repo's
+Pages settings.
 
 ## Running it
 

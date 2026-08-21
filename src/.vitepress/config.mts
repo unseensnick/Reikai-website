@@ -9,10 +9,11 @@ import shortcodes from './shortcodes'
 
 const REPO = 'https://github.com/unseensnick/Reikai'
 
-// The site is served from a project page, so every URL sits under this prefix. VitePress rewrites
-// markdown links, raw HTML `src` attributes and CSS `url()` for it on its own; what it does NOT
-// touch is the hand-written strings in this file, so those two spell it out below.
-const BASE = '/Reikai-website/'
+// Served from the root of its own domain, so the base is just "/". Kept as a constant because
+// VitePress rewrites markdown links, raw HTML `src` attributes and CSS `url()` for the base on its
+// own but does NOT touch hand-written strings in this file, so the two below have to spell it out.
+// Moving the site under a path again means changing this line and nothing else.
+const BASE = '/'
 
 // One sidebar everywhere rather than a different one per section. Download, changelogs and the docs
 // are a single small site, and splitting them meant landing on Download with no way back into

@@ -1,0 +1,3 @@
+# GitHub Pages reads the deployed CNAME as the site's custom domain. Keep it LF so a Windows
+# checkout cannot hand the build a file with a stray carriage return in the hostname.
+src/public/CNAME text eol=lf
