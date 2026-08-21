@@ -1,0 +1,21 @@
+{
+  "name": "reikai-website",
+  "type": "module",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Website and documentation for the Reikai app.",
+  "license": "Apache-2.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "sync": "node scripts/sync-docs.mjs && node scripts/sync-changelogs.mjs",
+    "dev": "npm run sync && vitepress dev src",
+    "build": "npm run sync && vitepress build src",
+    "preview": "vitepress preview src"
+  },
+  "devDependencies": {
+    "markdown-it-shortcode-tag": "^1.1.0",
+    "vitepress": "^1.6.3"
+  }
+}
