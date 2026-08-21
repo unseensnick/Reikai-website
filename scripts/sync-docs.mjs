@@ -14,16 +14,15 @@ import { readdir, readFile, writeFile, mkdir, rm } from 'node:fs/promises'
 import { existsSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { APP_REPO as APP_REPO_RESOLVED, DOCS_REF, describe } from './env.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
-const APP_REPO = process.env.REIKAI_APP_REPO ?? resolve(here, '../../app')
+const APP_REPO = APP_REPO_RESOLVED
 const SOURCE = join(APP_REPO, 'docs')
 const OUT = resolve(here, '../src/docs')
-// The ref those rewritten links point at. `main` is right once a cycle has merged, but a doc can
-// reference a dev record that only exists on the working branch, and that link 404s until then.
-// Build with REIKAI_DOCS_REF=feat/0.4.0 while a cycle is open.
-const REF = process.env.REIKAI_DOCS_REF ?? 'main'
-const BLOB = `https://github.com/unseensnick/Reikai/blob/${REF}`
+// The ref those rewritten links point at, resolved in env.mjs: it defaults to the branch the app
+// repo is checked out at, because a doc can reference a dev record that exists only there.
+const BLOB = `https://github.com/unseensnick/Reikai/blob/${DOCS_REF}`
 
 // The index is this site's own navigation, and it describes three tiers of docs of which only one
 // is published here, so it is not carried across.
@@ -65,4 +64,4 @@ for (const file of files) {
   await writeFile(join(OUT, file), transform(body), 'utf8')
 }
 
-console.log(`sync-docs: ${files.length} docs from ${SOURCE}`)
+console.log(`sync-docs: ${files.length} docs (${describe()})`)

@@ -1,3 +1,6 @@
+// Loads .env and resolves defaults before anything else runs, so the release data loader in
+// this same process sees GITHUB_TOKEN without the caller having to export it.
+import '../../scripts/env.mjs'
 import { defineConfig } from 'vitepress'
 // @ts-expect-error no bundled types
 import shortcodePlugin from 'markdown-it-shortcode-tag'
