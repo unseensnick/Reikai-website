@@ -1,7 +1,40 @@
+<div align="center">
+
+<a href="https://github.com/unseensnick/Reikai">
+    <img src="./src/public/logo.webp" alt="Reikai logo" height="160px" width="160px" />
+</a>
+
 # Reikai website
 
-Documentation and download site for [Reikai](https://github.com/unseensnick/Reikai), built with
-[VitePress](https://vitepress.dev).
+### Documentation and download site for [Reikai](https://github.com/unseensnick/Reikai)
+
+One library for manga and light novels, on Android.
+
+| Releases | Preview |
+| :---: | :---: |
+| [![Stable](https://img.shields.io/github/v/release/unseensnick/Reikai?maxAge=3600&label=Stable&labelColor=06599d&color=043b69)](https://github.com/unseensnick/Reikai/releases) [![Stable downloads](https://img.shields.io/github/downloads/unseensnick/Reikai/total?maxAge=3600&label=Downloads&labelColor=27303D&color=0D1117&logo=github&logoColor=FFFFFF)](https://github.com/unseensnick/Reikai/releases) | [![Preview](https://img.shields.io/github/v/release/unseensnick/Reikai-preview?maxAge=3600&label=Preview&labelColor=2c2c47&color=1c1c39)](https://github.com/unseensnick/Reikai-preview/releases) [![Preview downloads](https://img.shields.io/github/downloads/unseensnick/Reikai-preview/total?maxAge=3600&label=Downloads&labelColor=27303D&color=0D1117&logo=github&logoColor=FFFFFF)](https://github.com/unseensnick/Reikai-preview/releases) |
+
+*Requires Android 8.0 or higher.*
+
+[![License: MPL-2.0](https://img.shields.io/badge/License-MPL--2.0-0877d2?labelColor=27303D)](./LICENSE)
+[![Built with VitePress](https://img.shields.io/badge/Built%20with-VitePress-5c73e7?labelColor=27303D)](https://vitepress.dev)
+
+</div>
+
+## What is here
+
+The site carries everything a Reikai user needs: how to install it, what each setting does, and how
+the features it adds on top of Mihon work.
+
+- **Download** for the stable and nightly builds, with per-architecture APKs and the latest release
+  notes.
+- **Guides** for getting started, the reader, backups, tracking, categories, the local source,
+  source migration and troubleshooting.
+- **Frequently asked questions** for the library, the reader, downloads, storage and browsing.
+- **Related apps**, the other readers in the same lineage, and a **privacy policy** covering what
+  the app stores and what it sends.
+
+**Not deployed yet.** There is no public URL: run it locally with the steps below.
 
 ## Running it
 
@@ -10,64 +43,40 @@ npm install
 npm run dev
 ```
 
-That is the whole thing. No environment variables are required: the app repo is found beside this
-one, and the ref that repo links point at is read from whichever branch it is checked out on.
+That is all of it. No environment variables are needed: the app repo is found beside this one, and
+the ref its links point at comes from whichever branch it is checked out on.
 
-## Optional configuration
+Copy `.env.example` to `.env` to override any of that. A real environment variable beats the file, so
+a one-off still works.
 
-Copy `.env.example` to `.env` and fill in what you need. A real environment variable always wins over
-the file, so a one-off override still works:
-
-```bash
-$env:GITHUB_TOKEN="..."; npm run dev   # PowerShell
-GITHUB_TOKEN=... npm run dev           # bash
-```
-
-- **`GITHUB_TOKEN`** lifts GitHub's 60-request-per-hour cap for unauthenticated calls. The download
-  page and the changelogs generator both read the releases API. Without a token they still work, but
-  once you hit the cap the version reads "unavailable" and the changelog page comes up empty. It
-  needs no scopes.
+- **`GITHUB_TOKEN`** lifts GitHub's unauthenticated rate limit, which the download and changelog
+  pages both hit. Without one they still work until you reach the cap, then the version reads
+  "unavailable" and the changelog page comes up empty. No scopes needed.
 - **`REIKAI_APP_REPO`** if the app repo is not at `../app`.
-- **`REIKAI_DOCS_REF`** to pin the ref that links into the app repo use. It defaults to the app
-  repo's current branch. Nothing needs it today, because every such link currently sits in the
-  dev-records footer that the sync strips; it matters the moment a doc links a repo file inline.
+- **`REIKAI_DOCS_REF`** to pin the ref that links into the app repo point at.
 
-## How the content gets here
+## Where the pages come from
 
-**The docs are not stored in this repo.** `scripts/sync-docs.mjs` reads them out of the app repo at
-build time, so there is never a second copy to drift from the code that invalidates it. It walks the
-whole `docs/` tree and splits by extension: markdown goes to `src/docs/` with the dev-records footer
-dropped and repo-relative links rewritten, everything else is copied to `src/public/docs/`, which is
-where an absolute `/docs/...` asset URL resolves. Contributor material living in the same tree
-(`README.md`, `dev/`, `guides/PORTING.md`) is skipped.
-
-`scripts/sync-changelogs.mjs` generates the changelogs page from the GitHub releases API, filtered to
-the Mihon-era three-segment versions.
-
-The home page's hero is built from the app repo's showcase stills: run `make-frames.sh` in
-`.github/readme-images/showcase/` to put `p1a_manga_lib` and `p1b_novel_lib` in the device frame,
-then composite the two with the novel one behind at 90% and export a transparent WebP. One image
-serves both themes, which is why it is transparent rather than a light/dark pair.
-
-Both run automatically as part of `npm run dev` and `npm run build`, and both write into gitignored
-directories.
+**The docs are not stored here.** `scripts/sync-docs.mjs` reads them out of the app repo at build
+time, so there is never a second copy to drift from the code that invalidates it, and
+`scripts/sync-changelogs.mjs` builds the changelog page from the releases API. Both run as part of
+`npm run dev` and `npm run build`, and both write into gitignored directories.
 
 ## Checking your work
 
-`npm run build` fails on dead links, so run it. But it is not much of a check on its own: **most
-rendering failures leave the build green.** Read the built HTML in `src/.vitepress/dist`, or drive
-the served page, before believing a page is fine.
+`npm run build` fails on dead links, so run it. It is not much of a check on its own though, because
+**most rendering failures leave the build green.** Read the built HTML in `src/.vitepress/dist`, or
+drive the served page, before believing a page is fine.
 
 Three that have bitten, all silent:
 
 - `::: tabs` without `vitepress-plugin-tabs` renders as the literal `:::` text.
-- A missing `.only-light` / `.only-dark` rule shows both screenshots of a light/dark pair, stacked.
+- A missing `.only-light` / `.only-dark` rule shows both halves of a light/dark image pair, stacked.
 - Without `markdown: { headers: true }` every page builds with `headers: []`, so the "On this page"
   aside draws its title over nothing.
 
-`npm run preview` serves the built output, which is what to look at for production behaviour: the
-release data is inlined at build time rather than hydrated. Restart it after a rebuild rather than
-reloading, or you will chase a fix that already landed.
+`npm run preview` serves the built output. Restart it after a rebuild rather than reloading, or you
+will chase a fix that already landed.
 
 ## Credit
 
@@ -77,6 +86,21 @@ pair rules. The navigation map itself is Reikai's own, because the app's navigat
 
 The guides under `docs/guides/` and `docs/faq/` in the app repo are adapted from Mihon's too, and
 carry their own attribution there.
+
+## Contributing
+
+A correction to a page is welcome, especially one that catches the docs describing something the app
+no longer does. **Most pages are not in this repo:** everything under `/docs/` is served from
+`docs/` in the [app repo](https://github.com/unseensnick/Reikai), so that is where to edit them. This
+repo holds the site itself, the download and changelog pages, Related apps and the privacy policy.
+
+For anything larger, open an issue first. This is a one-person project and a big pull request may
+sit for a while.
+
+## Disclaimer
+
+The developer of this application does not have any affiliation with the content providers
+available, and this application hosts zero content.
 
 ## License
 
