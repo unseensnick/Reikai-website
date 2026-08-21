@@ -9,6 +9,11 @@ import shortcodes from './shortcodes'
 
 const REPO = 'https://github.com/unseensnick/Reikai'
 
+// The site is served from a project page, so every URL sits under this prefix. VitePress rewrites
+// markdown links, raw HTML `src` attributes and CSS `url()` for it on its own; what it does NOT
+// touch is the hand-written strings in this file, so those two spell it out below.
+const BASE = '/Reikai-website/'
+
 // One sidebar everywhere rather than a different one per section. Download, changelogs and the docs
 // are a single small site, and splitting them meant landing on Download with no way back into
 // anything except the top nav.
@@ -96,10 +101,11 @@ const sidebar = [
 
 export default defineConfig({
   title: 'Reikai',
+  base: BASE,
   description: 'One library for manga and light novels, on Android.',
   cleanUrls: true,
   lastUpdated: true,
-  head: [['link', { rel: 'icon', href: '/favicon.svg' }]],
+  head: [['link', { rel: 'icon', href: `${BASE}favicon.svg` }]],
 
   markdown: {
     // Required for the "On this page" aside to hold anything. VitePress registers its header
@@ -155,7 +161,7 @@ export default defineConfig({
         + ' <span class="divider">|</span> '
         + '<a href="https://www.mozilla.org/MPL/2.0/">MPL-2.0 site</a>'
         + ' <span class="divider">|</span> '
-        + '<a href="/privacy/">Privacy policy</a>',
+        + `<a href="${BASE}privacy/">Privacy policy</a>`,
       copyright:
         `Copyright © ${new Date().getFullYear()} <a href="${REPO}">Reikai</a>`
         + ' · Built on <a href="https://mihon.app">Mihon</a>',

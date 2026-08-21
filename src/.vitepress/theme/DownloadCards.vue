@@ -12,6 +12,9 @@
 // gets skipped, which is how the version and the release date used to be missed on this page.
 
 import { computed, ref } from 'vue'
+// A hand-written href in a Vue template is the one place VitePress does not prefix the site's
+// base for you, so this link goes through withBase or it 404s on a project page.
+import { withBase } from 'vitepress'
 import { data as releases } from './release.data'
 
 const props = withDefaults(defineProps<{ group?: 'primary' | 'other' }>(), { group: 'primary' })
@@ -189,7 +192,7 @@ function toggle(id: string) {
         <template v-if="latest.summary.total > latest.summary.shown">
           {{ latest.summary.total - latest.summary.shown }} more in this release.
         </template>
-        <a href="/changelogs/">Read the full changelog</a>
+        <a :href="withBase('/changelogs/')">Read the full changelog</a>
       </p>
     </section>
   </div>

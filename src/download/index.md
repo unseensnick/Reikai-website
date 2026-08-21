@@ -4,9 +4,6 @@ description: Download Reikai for Android.
 aside: false
 pageClass: page-narrow
 prev: false
-next:
-  text: Changelogs
-  link: /changelogs/
 editLink: false
 lastUpdated: false
 ---

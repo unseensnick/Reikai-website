@@ -1,0 +1,78 @@
+name: Deploy site
+
+# The site is built from two repositories: this one, and the app repo, which is where the user docs
+# actually live (scripts/sync-docs.mjs reads them at build time). So the build checks out both and
+# points REIKAI_APP_REPO at the second one.
+
+on:
+  push:
+    branches: [main]
+  # The docs live in the app repo, so a docs change there does not push here. Run this by hand after
+  # one, or add a repository_dispatch from that repo later.
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# One deploy at a time, and a newer push wins rather than queueing behind an older one.
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+env:
+  # The branch of the app repo the docs are read from, and the ref that links into that repo point
+  # at. Both become `main` once the 0.4.0 cycle merges.
+  APP_REF: feat/0.4.0
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the site
+        uses: actions/checkout@v4
+        with:
+          path: website
+
+      - name: Check out the app repo for its docs
+        uses: actions/checkout@v4
+        with:
+          repository: unseensnick/Reikai
+          ref: ${{ env.APP_REF }}
+          path: app
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: website/package-lock.json
+
+      - run: npm ci
+        working-directory: website
+
+      - run: npm run build
+        working-directory: website
+        env:
+          REIKAI_APP_REPO: ${{ github.workspace }}/app
+          REIKAI_DOCS_REF: ${{ env.APP_REF }}
+          # Lifts the releases-API rate limit that the download and changelog pages both hit. The
+          # build works without it until a busy runner IP reaches the cap, and then those two pages
+          # come up empty rather than failing, so this is worth passing.
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: website/src/.vitepress/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
