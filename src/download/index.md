@@ -35,4 +35,4 @@ too.
 
 They install as separate apps with separate libraries, so you can keep Stable and try Nightly beside
 it without touching what you already have. Nothing needs uninstalling. To carry your reading across,
-[back up](/docs/backup-restore) in one and restore in the other.
+[back up](/docs/guides/backups) in one and restore in the other.

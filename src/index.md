@@ -39,7 +39,8 @@ It is built first for its author's daily use, so development is sporadic and the
 one person's taste rather than a broad roadmap. It rides Mihon's actively maintained base for the
 core reader and layers its own features on top.
 
-The documentation here covers what Reikai adds. For the core reading experience it inherits, Mihon's
-own [documentation](https://mihon.app/docs/guides/getting-started) still applies.
+The [documentation](/docs/guides/getting-started) covers both halves: the reading experience Reikai
+inherits, in guides adapted from [Mihon's own](https://mihon.app/docs/guides/getting-started), and
+the features Reikai adds on top, which are documented nowhere else.
 
 </div>

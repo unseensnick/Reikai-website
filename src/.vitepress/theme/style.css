@@ -26,6 +26,82 @@
   display: inline-block;
 }
 
+/* Screenshots ported from Mihon come in light and dark pairs, both in the markup, with the theme
+   picking one. Without these two rules the page shows both stacked, and nothing warns you: the
+   build is clean and the extra image just looks like an editing mistake. From their base.styl
+   (MPL-2.0). Rounded corners come from the same file, keyed on the attributes their <img> tags
+   already carry. */
+html:not(.dark) .only-dark,
+html.dark .only-light {
+  display: none !important;
+}
+.vp-doc img[loading='lazy'][decoding='async'],
+.vp-doc video {
+  border-radius: 12px;
+}
+
+/* Folder-structure diagrams in the storage and local-source pages: a nested <ul> drawn with
+   connector lines. Ported from Mihon's website (MPL-2.0), theme/styles/tree.styl, with their
+   --vp-c-brand-darker/lighter swapped for the --vp-c-brand-1/2 that current VitePress ships. */
+.tree {
+  margin: 16px;
+  padding: 16px;
+  border-radius: 8px;
+  color: var(--vp-c-text-1);
+  font-family: var(--vp-font-family-mono);
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+.tree > ul {
+  margin: 0;
+}
+.tree ul {
+  padding-left: 5px;
+  list-style: none;
+}
+.tree li {
+  position: relative;
+  box-sizing: border-box;
+  margin-top: 0;
+  padding-left: 15px;
+}
+.tree li::before,
+.tree li::after {
+  position: absolute;
+  content: '';
+  left: 0;
+  background-color: var(--vp-c-text-3);
+}
+.tree li::before {
+  top: 15px;
+  width: 10px;
+  height: 1px;
+}
+.tree li::after {
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  height: 100%;
+}
+/* The last child's vertical line stops at its own connector, so the run does not overshoot. */
+.tree li:last-child::after {
+  height: 15px;
+}
+.tree span.folder,
+.tree span.file.zip {
+  color: var(--vp-c-brand-1);
+}
+.tree span.file .file-extension {
+  color: var(--vp-c-text-2);
+}
+/* Same reset problem as the nav chips: without this each icon takes its own line. */
+.tree-icon {
+  display: inline-block;
+  height: 12px;
+  width: 12px;
+  margin-right: 6px;
+}
+
 /* Pages that turn the aside off would otherwise run the full width of the viewport, which leaves
    headings and cards hugging the left edge. Centre them on a comfortable measure instead. */
 .page-narrow .VPDoc .content-container {

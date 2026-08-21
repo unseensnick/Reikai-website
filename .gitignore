@@ -2,6 +2,7 @@ node_modules/
 src/.vitepress/cache/
 src/.vitepress/dist/
 src/docs/
+src/public/docs/
 dist/
 .DS_Store
 src/changelogs/index.md
