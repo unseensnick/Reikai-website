@@ -1,5 +1,12 @@
-// The `<nav to="...">` shortcode: renders an in-app navigation path as a chain of labelled chips,
-// so a doc can write `<nav to="tracking">` and get "More -> Settings -> Tracking".
+// Two shortcodes for naming in-app UI from a doc.
+//
+// `<nav to="...">` renders a navigation path as a chain of labelled chips, so a doc can write
+// `<nav to="tracking">` and get "More -> Settings -> Tracking".
+//
+// `<icon name="...">` renders ONE chip for a control that ships as an icon with no text label next
+// to it. Reikai has several: the library selection bar draws every action as a bare icon (its title
+// is only the accessibility label), so a doc that writes "tap **Merge**" sends the reader hunting
+// for a word that is never on screen. The chip shows the glyph they can actually match.
 //
 // Mechanism and icon paths ported from Mihon's website (MPL-2.0,
 // https://github.com/mihonapp/website, .vitepress/config/shortcodes.ts). The map below is Reikai's
@@ -27,6 +34,9 @@ const icons = {
   tracking: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12,18A6,6 0 0,1 6,12C6,11 6.25,10.03 6.7,9.2L5.24,7.74C4.46,8.97 4,10.43 4,12A8,8 0 0,0 12,20V23L16,19L12,15M12,4V1L8,5L12,9V6A6,6 0 0,1 18,12C18,13 17.75,13.97 17.3,14.8L18.76,16.26C19.54,15.03 20,13.57 20,12A8,8 0 0,0 12,4Z" /></svg>',
   updates: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M23,12L20.56,14.78L20.9,18.46L17.29,19.28L15.4,22.46L12,21L8.6,22.47L6.71,19.29L3.1,18.47L3.44,14.78L1,12L3.44,9.21L3.1,5.53L6.71,4.72L8.6,1.54L12,3L15.4,1.54L17.29,4.72L20.9,5.54L20.56,9.22L23,12M20.33,12L18.5,9.89L18.74,7.1L16,6.5L14.58,4.07L12,5.18L9.42,4.07L8,6.5L5.26,7.09L5.5,9.88L3.67,12L5.5,14.1L5.26,16.9L8,17.5L9.42,19.93L12,18.81L14.58,19.92L16,17.5L18.74,16.89L18.5,14.1L20.33,12M11,15H13V17H11V15M11,7H13V13H11V7" /></svg>',
   webview: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960"><path d="M480-80q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm-40-82v-78q-33 0-56.5-23.5T360-320v-40L168-552q-3 18-5.5 36t-2.5 36q0 121 79.5 212T440-162Zm276-102q20-22 36-47.5t26.5-53q10.5-27.5 16-56.5t5.5-59q0-98-54.5-179T600-776v16q0 33-23.5 56.5T520-680h-80v80q0 17-11.5 28.5T400-560h-80v80h240q17 0 28.5 11.5T600-440v120h40q26 0 47 15.5t29 40.5Z"/></svg>',
+  merge: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960"><path d="m256-120-56-56 193-194q23-23 35-52t12-61v-204l-64 63-56-56 160-160 160 160-56 56-64-63v204q0 32 12 61t35 52l193 194-56 56-224-224-224 224Z"/></svg>',
+  split: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960"><path d="M440-160v-304L240-664v104h-80v-240h240v80H296l224 224v336h-80Zm154-376-58-58 128-126H560v-80h240v240h-80v-104L594-536Z"/></svg>',
+  filter: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960"><path d="M400-240v-80h160v80H400ZM240-440v-80h480v80H240ZM120-640v-80h720v80H120Z"/></svg>',
 }
 
 interface NavEntry {
@@ -85,14 +95,26 @@ const navigation: Record<string, NavEntry> = {
   'webview-single': { name: 'WebView', icon: icons.webview },
 }
 
+// Icon-only controls, keyed by what a doc would call them. Each name is the control's accessibility
+// label in the app, so it stays the word a reader hears from TalkBack even though nothing draws it.
+const actions: Record<string, { name: string; icon: string }> = {
+  merge: { name: 'Merge', icon: icons.merge },
+  unmerge: { name: 'Unmerge', icon: icons.split },
+  filter: { name: 'Filter', icon: icons.filter },
+}
+
+function chip(name: string, icon?: string): string {
+  return `<span class="shortcode navigation">${icon ?? ''}<span class="name">${name}</span></span>`
+}
+
 function render(key: string): string {
   const entry = navigation[key]
   if (!entry) {
     // Loud rather than silent: a typo in a doc should be obvious on the page, not a blank.
     return `<strong style="color:var(--vp-c-danger-1)">Unknown navigation "${key}"</strong>`
   }
-  const chip = `<span class="shortcode navigation">${entry.icon ?? ''}<span class="name">${entry.name}</span></span>`
-  return entry.under ? `${render(entry.under)}${SEPARATOR}${chip}` : chip
+  const one = chip(entry.name, entry.icon)
+  return entry.under ? `${render(entry.under)}${SEPARATOR}${one}` : one
 }
 
 // Mihon emits a bare " -> " between chips, which lands outside the coloured span and so renders in
@@ -104,6 +126,15 @@ export default {
   nav: {
     render({ to }: { to: string }) {
       return render(to)
+    },
+  },
+  icon: {
+    render({ name }: { name: string }) {
+      const action = actions[name]
+      if (!action) {
+        return `<strong style="color:var(--vp-c-danger-1)">Unknown icon "${name}"</strong>`
+      }
+      return chip(action.name, action.icon)
     },
   },
 }
