@@ -33,8 +33,10 @@ device makes, as any website would. Reikai hosts no content and runs no proxy.
 and to whom, is between you and whoever published it. Reikai does not audit them and cannot vouch
 for them.
 
-**Trackers.** If you sign in to AniList, MyAnimeList, Kitsu, MangaUpdates, Shikimori or Bangumi, your
-reading progress goes to that service, which is the point of tracking. Sign out and it stops.
+**Trackers.** If you sign in to a tracking service, your reading progress goes to that service, which
+is the point of tracking. It sees only the entries you bind to it, and signing out stops it. The
+[tracking guide](/docs/guides/tracking) lists every service supported, including three built for
+light novels. Three more in that list, Komga, Kavita and Suwayomi, are servers you run yourself.
 
 **Update checks.** The in-app updater asks GitHub whether a newer release exists.
 
