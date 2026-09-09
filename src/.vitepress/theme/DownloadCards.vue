@@ -288,7 +288,7 @@ function toggle(id: string) {
 .rk-badge.warn { background: var(--vp-c-warning-soft); color: var(--vp-c-warning-1); }
 .rk-badge-mark {
   width: 38px; height: 38px; background: currentColor;
-  mask: url('/favicon.svg') center / contain no-repeat;
+  mask: url('/mark.svg') center / contain no-repeat;
 }
 .rk-title { margin: 0; font-size: 20px; font-weight: 700; line-height: 1.2; }
 .rk-desc { margin: 4px 0 0; color: var(--vp-c-text-2); font-size: 14px; }
