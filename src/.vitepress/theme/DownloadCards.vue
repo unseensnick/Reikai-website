@@ -28,7 +28,10 @@ interface Channel {
   note?: string
   release: typeof releases.stable
   /** Card accent. Stable reads as the recommended one, nightly as the one to think about first. */
-  tone: 'brand' | 'warn'
+  tone: 'brand' | 'warn' | 'plain'
+  /** Which build of that release the card offers. */
+  flavour: 'standard' | 'foss'
+  icon: 'mark' | 'nightly' | 'foss'
 }
 
 const channels = computed<Channel[]>(() => {
@@ -39,6 +42,8 @@ const channels = computed<Channel[]>(() => {
     note: 'Requires Android 8.0 or higher',
     release: releases.stable,
     tone: 'brand',
+    flavour: 'standard',
+    icon: 'mark',
   }
   const nightly: Channel = {
     id: 'nightly',
@@ -47,30 +52,52 @@ const channels = computed<Channel[]>(() => {
     note: 'Installs alongside a stable build',
     release: releases.nightly,
     tone: 'warn',
+    flavour: 'standard',
+    icon: 'nightly',
   }
-  return props.group === 'primary' ? [stable] : [nightly]
+  // Same release as Stable, different build. It is listed as its own channel rather than as a link
+  // on the Stable card because choosing it is the same kind of decision as choosing Nightly: it
+  // installs as a separate app, so moving to or from it costs a backup and restore.
+  const foss: Channel = {
+    id: 'foss',
+    title: 'FOSS',
+    description: 'No crash reporting or analytics compiled in. Built from source, nothing else added.',
+    note: 'Installs as a separate app',
+    release: releases.stable,
+    tone: 'plain',
+    flavour: 'foss',
+    icon: 'foss',
+  }
+  return props.group === 'primary' ? [stable] : [nightly, foss]
 })
 
 /** The notes shown under the Stable card. Nightly's notes are a per-build diff and belong on GitHub. */
 const latest = computed(() => (props.group === 'primary' ? releases.stable : null))
 
-// Identify the universal build by what it is NOT, rather than by its name. The two channels name
-// their files differently, `reikai-v0.3.1.apk` for stable and `reikai-r1535.apk` for nightly, so
-// matching the version shape picked the wrong asset for one of them and fell through to whichever
-// APK GitHub happened to list first. Absence of an ABI token is true for both.
+// Identify a build by what it is NOT, rather than by its name. The channels name their files
+// differently, `reikai-v0.3.1.apk` for stable and `reikai-r1535.apk` for nightly, so matching the
+// version shape picked the wrong asset for one of them. Absence of an ABI token is true for both.
 const ABI = /(arm64-v8a|armeabi-v7a|x86_64|x86)/i
 
-function universal(release: Channel['release']) {
+// A release ships the FOSS build beside the ordinary one, and it carries no ABI token either, so
+// the rule above matched both and took whichever GitHub happened to list first. That silently
+// served FOSS as the Stable download, which is a different app: it installs alongside rather than
+// over, so moving off it costs a backup and restore. Every card now names the flavour it wants.
+const FOSS = /-foss[-.]/i
+
+function universal(release: Channel['release'], flavour: Channel['flavour']) {
   if (!release) return null
-  return release.assets.find(a => a.name.endsWith('.apk') && !ABI.test(a.name))
-    ?? release.assets.find(a => a.name.endsWith('.apk'))
-    ?? null
+  return release.assets.find(
+    a => a.name.endsWith('.apk') && !ABI.test(a.name) && FOSS.test(a.name) === (flavour === 'foss'),
+  ) ?? null
 }
 
-function architectures(release: Channel['release']) {
-  if (!release) return []
+// No per-architecture FOSS builds are published, so that card offers none rather than falling
+// through to the ordinary ones, which would hand out a different app than the card promises.
+function architectures(release: Channel['release'], flavour: Channel['flavour']) {
+  if (!release || flavour === 'foss') return []
   return release.assets
-    .filter(a => a.name.endsWith('.apk') && ABI.test(a.name))
+    .filter(a => a.name.endsWith('.apk') && ABI.test(a.name) && !FOSS.test(a.name))
     .map(a => ({
       label: (a.name.match(ABI)?.[0] ?? a.name).toLowerCase(),
       url: a.browser_download_url,
@@ -106,9 +133,12 @@ function toggle(id: string) {
     >
       <div class="rk-top">
         <span class="rk-badge" :class="channel.tone" aria-hidden="true">
-          <span v-if="channel.tone === 'brand'" class="rk-badge-mark" />
-          <svg v-else viewBox="0 -960 960 960" width="22" height="22" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+          <span v-if="channel.icon === 'mark'" class="rk-badge-mark" />
+          <svg v-else-if="channel.icon === 'nightly'" viewBox="0 -960 960 960" width="22" height="22" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
             <path d="M200-120q-51 0-72.5-45.5T138-250l222-270v-240h-40q-17 0-28.5-11.5T280-800q0-17 11.5-28.5T320-840h320q17 0 28.5 11.5T680-800q0 17-11.5 28.5T640-760h-40v240l222 270q32 39 10.5 84.5T760-120H200Zm80-120h400L544-400H416L280-240Z"/>
+          </svg>
+          <svg v-else viewBox="0 -960 960 960" width="22" height="22" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+            <path d="M320-240 80-480l240-240 57 57-184 184 183 183-56 56Zm320 0-57-57 184-184-183-183 56-56 240 240-240 240Z"/>
           </svg>
         </span>
 
@@ -126,17 +156,17 @@ function toggle(id: string) {
             <dt>Released</dt>
             <dd>{{ released(channel.release?.publishedAt) }}</dd>
           </div>
-          <div v-if="universal(channel.release)" class="rk-fact">
+          <div v-if="universal(channel.release, channel.flavour)" class="rk-fact">
             <dt>Size</dt>
-            <dd>{{ size(universal(channel.release)!.size) }}</dd>
+            <dd>{{ size(universal(channel.release, channel.flavour)!.size) }}</dd>
           </div>
         </dl>
 
         <a
-          v-if="universal(channel.release)"
+          v-if="universal(channel.release, channel.flavour)"
           class="rk-get"
           :class="channel.tone"
-          :href="universal(channel.release)!.browser_download_url"
+          :href="universal(channel.release, channel.flavour)!.browser_download_url"
         >Download</a>
         <a v-else class="rk-get" href="https://github.com/unseensnick/Reikai/releases">
           Releases on GitHub
@@ -147,7 +177,7 @@ function toggle(id: string) {
         <span v-if="channel.note">{{ channel.note }}</span>
         <a v-if="channel.release" class="rk-notes-link" :href="channel.release.htmlUrl">Release page</a>
         <button
-          v-if="architectures(channel.release).length"
+          v-if="architectures(channel.release, channel.flavour).length"
           class="rk-arch-toggle"
           type="button"
           @click="toggle(channel.id)"
@@ -163,7 +193,7 @@ function toggle(id: string) {
         </p>
         <div class="rk-arch-list">
           <a
-            v-for="arch in architectures(channel.release)"
+            v-for="arch in architectures(channel.release, channel.flavour)"
             :key="arch.label"
             class="rk-arch-item"
             :href="arch.url"
