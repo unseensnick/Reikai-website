@@ -189,3 +189,9 @@ html.dark .only-light {
   max-width: 860px;
   margin: 0 auto;
 }
+
+/* The nav logo, up from the default 24px. The bar is 64px tall, so the mark was sitting small in
+   it; VitePress exposes the size as a variable, so this needs no override of its own component. */
+:root {
+  --vp-nav-logo-height: 30px;
+}
