@@ -205,11 +205,28 @@ function toggle(id: string) {
       </div>
     </section>
 
-    <section v-if="latest && latest.summary.shown" class="rk-card rk-log">
+    <section
+      v-if="latest && (latest.summary.shown || latest.summary.highlights.length || latest.summary.alerts.length)"
+      class="rk-card rk-log"
+    >
       <h3 class="rk-log-title">
         What's new
         <span class="rk-log-version">{{ latest.tagName }}</span>
       </h3>
+
+      <div
+        v-for="(alert, i) in latest.summary.alerts"
+        :key="`alert-${i}`"
+        class="rk-alert"
+        :class="alert.kind"
+      >
+        <p class="rk-alert-kind">{{ alert.kind }}</p>
+        <p class="rk-alert-text">{{ alert.text }}</p>
+      </div>
+
+      <p v-for="(para, i) in latest.summary.highlights" :key="`hl-${i}`" class="rk-log-para">
+        {{ para }}
+      </p>
 
       <div v-for="section in latest.summary.sections" :key="section.title" class="rk-log-section">
         <h4 v-if="section.title" class="rk-log-heading">{{ section.title }}</h4>
@@ -219,7 +236,10 @@ function toggle(id: string) {
       </div>
 
       <p class="rk-log-more">
-        <template v-if="latest.summary.total > latest.summary.shown">
+        <template v-if="latest.summary.highlights.length && latest.summary.total">
+          {{ latest.summary.total }} changes in this release.
+        </template>
+        <template v-else-if="latest.summary.total > latest.summary.shown">
           {{ latest.summary.total - latest.summary.shown }} more in this release.
         </template>
         <a :href="withBase('/changelogs/')">Read the full changelog</a>
@@ -253,7 +273,8 @@ function toggle(id: string) {
 
 /* A round mark per channel, so the two cards are told apart before either is read. Reikai's own
    icon goes in as a CSS mask rather than an <img>: it then takes the badge's colour and needs no
-   second file for the light theme. */
+   second file for the light theme. The mask is the monochrome mark, not the colour favicon: a mask
+   reads only alpha, so a full-colour icon would fill the badge as a solid silhouette. */
 .rk-badge {
   display: grid; place-items: center; flex: 0 0 auto;
   width: 48px; height: 48px; border-radius: 50%;
@@ -334,6 +355,35 @@ function toggle(id: string) {
   font-size: 13px; color: var(--vp-c-text-3);
 }
 .rk-log-more a { color: var(--vp-c-brand-1); text-decoration: none; font-weight: 500; }
+
+/* The Highlights block, when a release opens with one. Prose rather than a list, because that is
+   what it is: the release explaining itself before the 300-entry changelog does. */
+.rk-log-para { margin: 0 0 10px; line-height: 1.6; }
+
+/* GitHub callouts from the notes. The same five colours the app's reader draws them in, so a
+   warning looks like the same warning in both places. */
+.rk-alert {
+  border-left: 3px solid var(--rk-alert);
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin: 0 0 12px;
+  background: color-mix(in srgb, var(--rk-alert) 10%, transparent);
+}
+.rk-alert.note { --rk-alert: #0969da; }
+.rk-alert.tip { --rk-alert: #1a7f37; }
+.rk-alert.important { --rk-alert: #8250df; }
+.rk-alert.warning { --rk-alert: #9a6700; }
+.rk-alert.caution { --rk-alert: #cf222e; }
+.dark .rk-alert.note { --rk-alert: #4493f8; }
+.dark .rk-alert.tip { --rk-alert: #3fb950; }
+.dark .rk-alert.important { --rk-alert: #ab7df8; }
+.dark .rk-alert.warning { --rk-alert: #d29922; }
+.dark .rk-alert.caution { --rk-alert: #f85149; }
+.rk-alert-kind {
+  margin: 0 0 2px; font-size: 13px; font-weight: 600;
+  text-transform: capitalize; color: var(--rk-alert);
+}
+.rk-alert-text { margin: 0; line-height: 1.6; }
 
 @media (max-width: 640px) {
   .rk-top { gap: 14px; }
