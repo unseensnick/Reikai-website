@@ -8,10 +8,16 @@ on:
   push:
     branches: [main]
   # The docs live in the app repo, so a change there does not push here. That repo's deploy-docs.yml
-  # sends this event once its push has landed, which is the ordering that matters: a deploy started
+  # sends docs-updated once its push has landed, which is the ordering that matters: a deploy started
   # before the push checks out the old docs and publishes a stale site.
+  #
+  # app-release is the other half. The download page reads its versions from the releases API at
+  # build time, so publishing a release changes nothing until something rebuilds the site, and a
+  # release that touches no docs used to leave that page advertising the previous version for days.
+  # The app repo's site-release.yml and nightly.yml send it. It carries no ref: a release must
+  # refresh the version numbers without also moving which branch the docs are built from.
   repository_dispatch:
-    types: [docs-updated]
+    types: [docs-updated, app-release]
   workflow_dispatch:
 
 permissions:

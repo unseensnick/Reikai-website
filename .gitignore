@@ -7,3 +7,4 @@ dist/
 .DS_Store
 src/changelogs/index.md
 .env
+.cache/

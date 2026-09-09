@@ -11,17 +11,12 @@ import { writeFile, mkdir } from 'node:fs/promises'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import './env.mjs'
+import { allReleases } from './releases.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const OUT = resolve(here, '../src/changelogs/index.md')
 const REPO = 'unseensnick/Reikai'
 const NIGHTLY_REPO = 'unseensnick/Reikai-preview'
-
-const headers = {
-  accept: 'application/vnd.github+json',
-  'user-agent': 'reikai-website',
-  ...(process.env.GITHUB_TOKEN ? { authorization: `Bearer ${process.env.GITHUB_TOKEN}` } : {}),
-}
 
 // The release body ends with the pipeline's own footer: a full-changelog link, a compare link and a
 // checksum table. Useful on GitHub, noise on a page that is already the changelog, so it is cut.
@@ -43,24 +38,13 @@ function formatDate(iso) {
   return new Date(iso).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
 }
 
-let releases = []
-try {
-  const res = await fetch(`https://api.github.com/repos/${REPO}/releases?per_page=100`, { headers })
-  if (res.ok) {
-    const json = await res.json()
-    // Only the Mihon-era releases. Reikai's tag history starts with the Yokai-based app, versioned
-    // as five segments (1.9.7.5.N); the rebase onto Mihon restarted at 0.1.0 with three. Those older
-    // notes describe a different app, so they belong in the repo's history rather than on a page a
-    // user reads to see what changed. The three-segment test keeps working past 1.0.0.
-    releases = json
-      .filter((r) => !r.draft && !r.prerelease && r.tag_name)
-      .filter((r) => /^v?\d+\.\d+\.\d+$/.test(r.tag_name))
-  } else {
-    console.warn(`sync-changelogs: ${res.status} from GitHub, writing an empty page`)
-  }
-} catch (error) {
-  console.warn('sync-changelogs: fetch failed, writing an empty page', error)
-}
+// Only the Mihon-era releases. Reikai's tag history starts with the Yokai-based app, versioned as
+// five segments (1.9.7.5.N); the rebase onto Mihon restarted at 0.1.0 with three. Those older notes
+// describe a different app, so they belong in the repo's history rather than on a page a user reads
+// to see what changed. The three-segment test keeps working past 1.0.0.
+const releases = (await allReleases(REPO))
+  .filter((r) => !r.draft && !r.prerelease && r.tag_name)
+  .filter((r) => /^v?\d+\.\d+\.\d+$/.test(r.tag_name))
 
 const intro = `---
 title: Changelogs

@@ -9,6 +9,8 @@
 
 import { defineLoader } from 'vitepress'
 
+import { allReleases, latestRelease } from '../../../scripts/releases.mjs'
+
 const STABLE_REPO = 'unseensnick/Reikai'
 const NIGHTLY_REPO = 'unseensnick/Reikai-preview'
 
@@ -112,42 +114,6 @@ function summarize(body: string): ReleaseSummary {
   return { sections: sections.filter(s => s.items.length > 0), total, shown }
 }
 
-async function latest(repo: string): Promise<ReleaseInfo | null> {
-  const headers: Record<string, string> = {
-    'accept': 'application/vnd.github+json',
-    'user-agent': 'reikai-website',
-  }
-  if (process.env.GITHUB_TOKEN) headers.authorization = `Bearer ${process.env.GITHUB_TOKEN}`
-
-  try {
-    const res = await fetch(`https://api.github.com/repos/${repo}/releases/latest`, { headers })
-    if (!res.ok) {
-      // A missing or rate-limited release must not fail the build: the page renders the card
-      // without a version instead, which is wrong-but-visible rather than a broken deploy.
-      console.warn(`release.data: ${repo} returned ${res.status}`)
-      return null
-    }
-    const json = await res.json() as {
-      tag_name: string
-      published_at: string | null
-      body: string | null
-      html_url: string
-      assets: ReleaseAsset[]
-    }
-    return {
-      tagName: json.tag_name,
-      publishedAt: json.published_at,
-      body: json.body ?? '',
-      summary: summarize(json.body ?? ''),
-      htmlUrl: json.html_url,
-      assets: json.assets ?? [],
-    }
-  } catch (error) {
-    console.warn(`release.data: ${repo} failed`, error)
-    return null
-  }
-}
-
 function toInfo(json: any): ReleaseInfo {
   return {
     tagName: json.tag_name,
@@ -159,37 +125,28 @@ function toInfo(json: any): ReleaseInfo {
   }
 }
 
-// The changelogs section lists every stable release, so this is a list call rather than /latest.
-// Drafts and pre-releases are excluded: the nightly channel is its own repo and its notes are the
-// per-build diff, which would swamp a page meant to read as version history.
+// The changelogs section lists every stable release, so this reads the whole list. Drafts and
+// pre-releases are excluded: the nightly channel is its own repo and its notes are the per-build
+// diff, which would swamp a page meant to read as version history.
 async function allStable(): Promise<ReleaseInfo[]> {
-  const headers: Record<string, string> = {
-    'accept': 'application/vnd.github+json',
-    'user-agent': 'reikai-website',
-  }
-  if (process.env.GITHUB_TOKEN) headers.authorization = `Bearer ${process.env.GITHUB_TOKEN}`
-
-  try {
-    const res = await fetch(`https://api.github.com/repos/${STABLE_REPO}/releases?per_page=100`, { headers })
-    if (!res.ok) {
-      console.warn(`release.data: ${STABLE_REPO} releases returned ${res.status}`)
-      return []
-    }
-    const json = await res.json() as any[]
-    return json.filter(r => !r.draft && !r.prerelease && r.tag_name).map(toInfo)
-  } catch (error) {
-    console.warn(`release.data: ${STABLE_REPO} releases failed`, error)
-    return []
-  }
+  const releases = await allReleases(STABLE_REPO)
+  return releases.filter(r => !r.draft && !r.prerelease && r.tag_name).map(toInfo)
 }
 
 export default defineLoader({
   async load(): Promise<ReleaseData> {
-    const [stable, nightly, stableAll] = await Promise.all([
-      latest(STABLE_REPO),
-      latest(NIGHTLY_REPO),
+    // Both repos come from scripts/releases.mjs, which fetches each one once per build and shares
+    // the answer with sync-changelogs.mjs through a cache file. The newest stable is taken off the
+    // list rather than from /releases/latest, which would be a third request for a release the
+    // list already contains.
+    const [stableAll, nightlyJson] = await Promise.all([
       allStable(),
+      latestRelease(NIGHTLY_REPO),
     ])
-    return { stable, nightly, stableAll }
+    return {
+      stable: stableAll[0] ?? null,
+      nightly: nightlyJson ? toInfo(nightlyJson) : null,
+      stableAll,
+    }
   },
 })
