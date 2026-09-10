@@ -1,6 +1,17 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!-- Created with Inkscape (http://www.inkscape.org/) -->
 
+<!--
+  DELIBERATE DIVERGENCE FROM THE APP ICON.
+
+  This is app/art/icon/drawing.svg with the background circle lightened from #280040 to #4a1478.
+  At favicon sizes the flame's near-black outline disappeared into the darker plate, so all that
+  read was the white R on a disc. The lighter plate brings the outline back and the mark reads
+  larger with no change to its geometry.
+
+  A launcher icon is never seen at 16px, so the app keeps the original. If you re-copy this file
+  from the app repo, re-apply the fill change or the favicon goes back to being unreadable.
+-->
 <svg
    width="1024"
    height="1024"
@@ -45,7 +56,7 @@
          id="g18"
          transform="matrix(2.0632333,0,0,2.0632333,-428.47809,-375.77736)"><g
            id="g19"><circle
-             style="display:inline;fill:#280040;fill-opacity:1;stroke-width:0.183012"
+             style="display:inline;fill:#4a1478;fill-opacity:1;stroke-width:0.183012"
              id="path1"
              cx="455.8273"
              cy="430.28452"
