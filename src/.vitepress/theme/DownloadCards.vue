@@ -242,7 +242,7 @@ function toggle(id: string) {
         <template v-else-if="latest.summary.total > latest.summary.shown">
           {{ latest.summary.total - latest.summary.shown }} more in this release.
         </template>
-        <a :href="withBase('/changelogs/')">Read the full changelog</a>
+        <a :href="withBase(`/changelogs/${latest.tagName.replace(/^v/, '')}`)">Read the full changelog</a>
       </p>
     </section>
   </div>

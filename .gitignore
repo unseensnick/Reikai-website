@@ -5,6 +5,6 @@ src/docs/
 src/public/docs/
 dist/
 .DS_Store
-src/changelogs/index.md
+src/changelogs/*.md
 .env
 .cache/

@@ -1,4 +1,5 @@
-// Generates the Changelogs page: one page, every stable release stacked newest first.
+// Generates the Changelogs page, every stable release stacked newest first, and one page per release
+// at /changelogs/<version> so a single release can be linked to.
 //
 // This writes real markdown rather than rendering releases in a Vue component, because VitePress
 // builds the "On this page" outline, the heading anchors and the local search index from the
@@ -7,7 +8,7 @@
 //
 // Set GITHUB_TOKEN to avoid the 60/hour unauthenticated rate limit.
 
-import { writeFile, mkdir } from 'node:fs/promises'
+import { writeFile, mkdir, readdir, rm } from 'node:fs/promises'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { PREVIEW } from './env.mjs'
@@ -20,7 +21,8 @@ if (PREVIEW) {
 }
 
 const here = dirname(fileURLToPath(import.meta.url))
-const OUT = resolve(here, '../src/changelogs/index.md')
+const DIR = resolve(here, '../src/changelogs')
+const OUT = resolve(DIR, 'index.md')
 const REPO = 'unseensnick/Reikai'
 const NIGHTLY_REPO = 'unseensnick/Reikai-preview'
 
@@ -76,9 +78,10 @@ const body = releases.length
         const date = formatDate(release.published_at)
         const notes = trimBody(release.body ?? '')
         // No explicit `---` between releases: VitePress already draws a border above every h2, so
-        // an <hr> as well renders two rules stacked.
+        // an <hr> as well renders two rules stacked. The version links to its own page; the heading's
+        // anchor is taken from its text, so existing #0-3-2 style links keep working.
         return [
-          `## ${version}${latest}`,
+          `## [${version}](/changelogs/${version})${latest}`,
           '',
           date ? `<p class="release-date">${date}</p>` : '',
           '',
@@ -90,6 +93,37 @@ const body = releases.length
       .join('\n\n')
   : '\nRelease history could not be loaded. It is always available on GitHub.\n'
 
-await mkdir(dirname(OUT), { recursive: true })
+await mkdir(DIR, { recursive: true })
 await writeFile(OUT, `${intro}\n${body}\n`, 'utf8')
+
+// Every page this script wrote last time goes first, so a release pulled from GitHub leaves no page.
+for (const file of await readdir(DIR)) {
+  if (/^\d+\.\d+\.\d+\.md$/.test(file)) await rm(resolve(DIR, file))
+}
+
+// Kept out of local search, since the stacked page already indexes every release once.
+for (const release of releases) {
+  const version = release.tag_name.replace(/^v/, '')
+  const date = formatDate(release.published_at)
+  const page = `---
+title: Reikai ${version}
+description: ${date ? `Changelog for Reikai ${version}, released ${date}.` : `Changelog for Reikai ${version}.`}
+lastUpdated: false
+editLink: false
+search: false
+prev:
+  text: Changelogs
+  link: /changelogs/
+next: false
+outline: [2, 3]
+---
+
+# Reikai ${version}
+
+${date ? `<p class="release-date">${date}</p>\n\n` : ''}${trimBody(release.body ?? '') || '_No release notes._'}
+
+[All changelogs](/changelogs/) · [On GitHub](https://github.com/${REPO}/releases/tag/${release.tag_name})
+`
+  await writeFile(resolve(DIR, `${version}.md`), page, 'utf8')
+}
 console.log(`sync-changelogs: ${releases.length} releases`)
