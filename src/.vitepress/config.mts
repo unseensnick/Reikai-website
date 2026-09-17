@@ -83,9 +83,11 @@ const sidebar = [
         items: [
           { text: 'Common issues', link: '/docs/guides/troubleshooting/common-issues' },
           { text: 'Diagnosis', link: '/docs/guides/troubleshooting/diagnosis' },
-          { text: 'Cloudflare bypass', link: '/docs/flaresolverr' },
         ],
       },
+      // A setup guide for a proxy you run, not a fix for an error, so it sits beside Troubleshooting
+      // rather than inside it.
+      { text: 'Cloudflare bypass', link: '/docs/flaresolverr' },
       { text: 'Source migration', link: '/docs/guides/source-migration' },
       { text: 'Backups', link: '/docs/guides/backups' },
       { text: 'Tracking', link: '/docs/guides/tracking' },
