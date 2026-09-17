@@ -106,8 +106,8 @@ const sidebar = [
         text: 'Library',
         collapsed: true,
         items: [
-          { text: 'Library layout', link: '/docs/library-layout' },
-          { text: 'Library search', link: '/docs/library-search' },
+          { text: 'Layout', link: '/docs/library-layout' },
+          { text: 'Search', link: '/docs/library-search' },
         ],
       },
       { text: 'Related manga', link: '/docs/related-mangas' },
