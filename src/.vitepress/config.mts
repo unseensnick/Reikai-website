@@ -102,8 +102,14 @@ const sidebar = [
       // What Reikai adds on top, kept together at the end of the guides rather than in a section of
       // their own: a reader looking for "how do I do X" should find one list, not two.
       { text: 'Multi-source grouping', link: '/docs/multi-source' },
-      { text: 'Library layout', link: '/docs/library-layout' },
-      { text: 'Library search', link: '/docs/library-search' },
+      {
+        text: 'Library',
+        collapsed: true,
+        items: [
+          { text: 'Library layout', link: '/docs/library-layout' },
+          { text: 'Library search', link: '/docs/library-search' },
+        ],
+      },
       { text: 'Related manga', link: '/docs/related-mangas' },
       { text: 'Adult sources', link: '/docs/adult-sources' },
       { text: 'Shizuku', link: '/docs/guides/shizuku' },
