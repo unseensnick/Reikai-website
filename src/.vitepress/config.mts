@@ -21,6 +21,14 @@ const BASE = PREVIEW ? '/preview/' : '/'
 // preview build has to be absolute, because VitePress would otherwise put /preview/ in front of it.
 const root = (path: string) => (PREVIEW ? `${SITE_ORIGIN}${path}` : path)
 
+// The two builds share one origin but are two separate apps. A click on a same-origin link is routed
+// inside the app it was clicked in, so the Nightly app would render its own 404 for a stable page until
+// the reader refreshed. A link that names a target is left to the browser, which loads the other build.
+// VitePress otherwise gives an absolute link a new tab, which is wrong for a page on this same site.
+const CROSS_BUILD = { target: '_self' } as const
+const rootLink = (text: string, path: string) =>
+  (PREVIEW ? { text, link: root(path), ...CROSS_BUILD } : { text, link: path })
+
 const here = dirname(fileURLToPath(import.meta.url))
 
 // One sidebar everywhere rather than a different one per section. Download, changelogs and the docs
@@ -34,10 +42,10 @@ const here = dirname(fileURLToPath(import.meta.url))
 const sidebar = [
   {
     items: [
-      { text: 'Download', link: root('/download/') },
-      { text: 'Changelogs', link: root('/changelogs/') },
-      { text: 'Related apps', link: root('/related/') },
-      { text: 'Privacy policy', link: root('/privacy/') },
+      rootLink('Download', '/download/'),
+      rootLink('Changelogs', '/changelogs/'),
+      rootLink('Related apps', '/related/'),
+      rootLink('Privacy policy', '/privacy/'),
     ],
   },
   {
@@ -138,6 +146,11 @@ export default defineConfig({
   // A local review build points its cross-links at localhost, which VitePress otherwise reports as dead.
   ignoreDeadLinks: SITE_ORIGIN.startsWith('http://localhost') ? 'localhostLinks' : false,
   base: BASE,
+  // The first doc's "Previous page" link would be the last site page, which in the Nightly build is on
+  // the stable site. The page footer cannot take a target, so it would open a new tab; drop it instead.
+  transformPageData(pageData) {
+    if (PREVIEW && pageData.relativePath === 'docs/about.md') pageData.frontmatter.prev = false
+  },
   description: 'One library for manga and light novels, on Android.',
   cleanUrls: true,
   lastUpdated: true,
@@ -161,6 +174,17 @@ export default defineConfig({
       // The guides ported from Mihon lean on ::: tabs blocks. Without the plugin they render as the
       // literal ":::" text, which the build does not complain about, so this is load-bearing.
       md.use(tabsMarkdownPlugin)
+      // Same reason as CROSS_BUILD: a doc link into the other build is absolute, and VitePress only adds
+      // its new-tab attributes to a link that has no target yet.
+      md.core.ruler.push('cross_build_links', (state) => {
+        for (const block of state.tokens) {
+          for (const token of block.children ?? []) {
+            if (token.type === 'link_open' && token.attrGet('href')?.startsWith(`${SITE_ORIGIN}/`)) {
+              token.attrSet('target', '_self')
+            }
+          }
+        }
+      })
     },
   },
 
@@ -174,8 +198,8 @@ export default defineConfig({
         text: 'Get Reikai',
         activeMatch: '^/(download|changelogs)',
         items: [
-          { text: 'Download', link: root('/download/') },
-          { text: 'Changelogs', link: root('/changelogs/') },
+          rootLink('Download', '/download/'),
+          rootLink('Changelogs', '/changelogs/'),
         ],
       },
       { text: 'Docs', link: '/docs/about', activeMatch: '^/docs/' },
@@ -183,8 +207,8 @@ export default defineConfig({
         // Absolute on both sides, because each build's links are otherwise resolved under its own base.
         text: PREVIEW ? 'Nightly' : 'Stable',
         items: [
-          { text: 'Stable', link: `${SITE_ORIGIN}/docs/about` },
-          { text: 'Nightly', link: `${SITE_ORIGIN}/preview/docs/about` },
+          { text: 'Stable', link: `${SITE_ORIGIN}/docs/about`, ...CROSS_BUILD },
+          { text: 'Nightly', link: `${SITE_ORIGIN}/preview/docs/about`, ...CROSS_BUILD },
         ],
       },
     ],
@@ -215,7 +239,7 @@ export default defineConfig({
         + ' <span class="divider">|</span> '
         + '<a href="https://www.mozilla.org/MPL/2.0/">MPL-2.0 site</a>'
         + ' <span class="divider">|</span> '
-        + `<a href="${root('/privacy/')}">Privacy policy</a>`,
+        + `<a href="${root('/privacy/')}" target="_self">Privacy policy</a>`,
       copyright:
         `Copyright © ${new Date().getFullYear()} <a href="${REPO}">Reikai</a>`
         + ' · Built on <a href="https://mihon.app">Mihon</a>',

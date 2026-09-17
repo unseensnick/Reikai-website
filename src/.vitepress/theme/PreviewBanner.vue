@@ -35,7 +35,7 @@ onBeforeUnmount(() => observer?.disconnect())
 <template>
   <div v-if="theme.preview" ref="banner" class="preview-banner">
     These docs describe the <strong>Nightly</strong> build, so they include changes not in a stable
-    release yet. <a :href="stableUrl">Read this page for the stable release</a>.
+    release yet. <a :href="stableUrl" target="_self">Read this page for the stable release</a>.
   </div>
 </template>
 
