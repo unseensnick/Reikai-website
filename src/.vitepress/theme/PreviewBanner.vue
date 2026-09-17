@@ -17,7 +17,7 @@ let observer: ResizeObserver | undefined
 
 const stableUrl = computed(() => {
   const path = route.path.startsWith(site.value.base) ? route.path.slice(site.value.base.length) : route.path
-  return `https://reikai.app/${path.replace(/^\//, '')}`
+  return `${theme.value.siteOrigin}/${path.replace(/^\//, '')}`
 })
 
 onMounted(() => {

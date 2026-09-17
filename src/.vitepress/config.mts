@@ -129,6 +129,8 @@ function existingPages(items: SidebarItem[]): SidebarItem[] {
 
 export default defineConfig({
   title: PREVIEW ? 'Reikai Nightly' : 'Reikai',
+  // A local review build points its cross-links at localhost, which VitePress otherwise reports as dead.
+  ignoreDeadLinks: SITE_ORIGIN.startsWith('http://localhost') ? 'localhostLinks' : false,
   base: BASE,
   description: 'One library for manga and light novels, on Android.',
   cleanUrls: true,
@@ -189,6 +191,7 @@ export default defineConfig({
 
     // Read by PreviewBanner.vue.
     preview: PREVIEW,
+    siteOrigin: SITE_ORIGIN,
 
     socialLinks: [{ icon: 'github', link: REPO }],
 

@@ -61,7 +61,9 @@ export const GITHUB_TOKEN = process.env.GITHUB_TOKEN ?? ''
 // docs alone, and links back to those pages at the root.
 export const SITE_VARIANT = process.env.REIKAI_SITE_VARIANT === 'preview' ? 'preview' : 'stable'
 export const PREVIEW = SITE_VARIANT === 'preview'
-export const SITE_ORIGIN = 'https://reikai.app'
+// Where the other half of the site lives. Overridable so a local copy of both builds can link to itself
+// instead of sending a reviewer out to the live site.
+export const SITE_ORIGIN = process.env.REIKAI_SITE_ORIGIN ?? 'https://reikai.app'
 // The branch "Edit this page" opens. A preview build reads a commit, which GitHub cannot edit.
 export const EDIT_REF = process.env.REIKAI_EDIT_REF ?? DOCS_REF
 
