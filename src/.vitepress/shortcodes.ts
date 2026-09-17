@@ -151,7 +151,26 @@ function render(key: string): string {
 // the chips, reads as a single path.
 const SEPARATOR = '<span class="shortcode navigation separator">→</span>'
 
+// Every key a doc can write, rendered, for the sandbox page. Read off the same maps the shortcodes use,
+// so a key the app's navigation.json adds or drops shows up there without a hand-kept list.
+function reference(): string {
+  const row = (source: string, rendered: string) =>
+    `<tr><td><code>${source.replace(/</g, '&lt;')}</code></td><td>${rendered}</td></tr>`
+  const table = (rows: string[]) => `<table><thead><tr><th>Write</th><th>Renders</th></tr></thead><tbody>${rows.join('')}</tbody></table>`
+  return [
+    '<h3 id="navigation">Navigation</h3>',
+    table(Object.keys(navigation).map((key) => row(`<nav to="${key}">`, render(key)))),
+    '<h3 id="icons">Icons</h3>',
+    table(Object.keys(actions).map((key) => row(`<icon name="${key}">`, chip(actions[key].name, actions[key].icon)))),
+  ].join('')
+}
+
 export default {
+  reference: {
+    render() {
+      return reference()
+    },
+  },
   nav: {
     render({ to }: { to: string }) {
       return render(to)

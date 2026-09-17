@@ -45,14 +45,23 @@ Newest first. "Base" is the `refs/mihon-website` SHA compared against.
 | `0f5cedf` | 2026-09-16 | Nothing. | **A renovate dependency bump (mihonapp/website#288), which shares almost no surface with this site.** Upstream pins exact versions under pnpm; this site declares three devDependencies under npm with caret ranges, so patch bumps arrive on their own install. The only name in common is `markdown-it-shortcode-tag`, which the bump leaves at 1.1.0. Everything else it moves is either a transitive of vitepress here (`markdown-it`) or part of the `@mdit` plugin set already declined on the row below, plus `element-plus`, which this site does not use. The three known gaps under this table are unaffected. |
 | `19df3f646` | 2026-09-10 | **First recorded comparison; the frontier starts here.** Took the release dispatch: upstream's `b76f197` added `repository_dispatch: types: [app_release]` to their deploy workflow so publishing an app version rebuilds the site. Ours is `app-release` and is sent by the app repo's `site-release.yml` (on a release being published, since our stable releases are created as drafts for review) and by `nightly.yml`. Also took the shape of their `config/releaseData.ts` memo-plus-disk cache as `scripts/releases.mjs`, because our two build processes were each fetching the same release list. Not a copy: theirs throws on failure and ours does not, and ours derives the newest stable from the list rather than spending a request on `/releases/latest`. | Their Beta-to-Nightly commits (`79fc510`, `0f8dc47`, `0551caf`) were already reflected here independently, including the primary and other download split. OG image generation (adds two dependencies and four bundled fonts; a static image gets most of the value). Algolia search. Their news section and RSS feed generation, which is sound but has no Reikai content to carry. Their markdown-it plugin set, since the synced docs already hand-write the attributes it would add. |
 
-### Known gaps, not yet done
+### Known gaps, closed
 
-These came out of the same comparison and are worth doing, in this order:
+The three gaps the first comparison found are done (2026-09-17). Where each departs from upstream:
 
-1. **A sitemap and a real head block.** `src/.vitepress/config.mts` has no `sitemap` key and its entire
-   head is one favicon link, so every page shares one description and none carry Open Graph tags.
-   Upstream's `config/headConfig.ts` and its `transformHead` hook are the reference.
-2. **Per-version changelog permalinks.** Upstream generates one page per tag from the releases list.
-   We emit a single concatenated page, so a release cannot be linked to on its own.
-3. **A shortcode reference page.** `src/.vitepress/shortcodes.ts` is 140 lines with nothing rendering
-   it, so a regression is invisible. Upstream's `sandbox/index.md` is the pattern.
+1. **Sitemap and head block.** VitePress's own `sitemap`, stable build only: it writes URLs without
+   the base, so the `/preview/` build's would name root pages, and that build is noindex anyway.
+   `buildEnd` writes a `robots.txt` naming the sitemap, since its address depends on the origin.
+   `transformHead` adds a canonical link and per-page Open Graph and Twitter title, description and
+   URL, as upstream's `generateMeta` does, but every page shares one static `og-image.png` rather than
+   a generated image, the decline recorded on the first row.
+2. **Per-version changelog pages.** Not upstream's dynamic `[tag].md` route rendering a Vue component:
+   `sync-changelogs.mjs` writes one markdown page per release beside the stacked page, for the reason
+   that script already gives (outline, anchors and search come from markdown). The per-version pages
+   are left out of local search so a release is not indexed twice, the stacked page's headings link
+   to them without changing their anchors, and the download page's changelog link opens the latest.
+   Upstream's `latest` redirect was not taken: it asks GitHub from the reader's browser.
+3. **Shortcode reference.** `src/sandbox/index.md`, noindex and out of search and the sitemap, as
+   upstream's. Unlike upstream's hand-kept list, its table comes from a `<reference>` shortcode that
+   reads the same maps `<nav>` and `<icon>` render from, so a key the app's `navigation.json` adds or
+   drops shows there on the next build.
