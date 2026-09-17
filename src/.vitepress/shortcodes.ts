@@ -13,6 +13,9 @@
 // own, because the navigation genuinely differs: Reikai's Updates and History can be one combined
 // Recents tab or two separate tabs depending on a setting, and it has entries Mihon does not.
 
+import { existsSync, readFileSync } from 'node:fs'
+import { join } from 'node:path'
+
 const icons = {
   about: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z" /></svg>',
   advanced: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M14.6,16.6L19.2,12L14.6,7.4L16,6L22,12L16,18L14.6,16.6M9.4,16.6L4.8,12L9.4,7.4L8,6L2,12L8,18L9.4,16.6Z" /></svg>',
@@ -46,7 +49,10 @@ interface NavEntry {
   under?: string
 }
 
-const navigation: Record<string, NavEntry> = {
+// The fallback map, used only when the app commit being built predates `docs/navigation.json`. The
+// labels change with the app (a setting moves, a screen is renamed), so the real map lives beside the
+// docs in the app repo and is read from whichever commit this build reads its docs from.
+const fallbackNavigation: Record<string, NavEntry> = {
   // Bottom navigation. Reikai can show one combined Recents tab or separate Updates and History
   // tabs, so all three exist and a doc picks whichever it actually means.
   'main_library': { name: 'Library', icon: icons.library },
@@ -94,6 +100,29 @@ const navigation: Record<string, NavEntry> = {
   'webview': { name: 'WebView', icon: icons.webview, under: 'overflow' },
   'webview-single': { name: 'WebView', icon: icons.webview },
 }
+
+interface NavFileEntry {
+  name: string
+  /** A key of `icons` above. */
+  icon?: keyof typeof icons
+  under?: string
+}
+
+function loadNavigation(): Record<string, NavEntry> {
+  const file = join(process.env.REIKAI_APP_REPO ?? '', 'docs', 'navigation.json')
+  if (!existsSync(file)) return fallbackNavigation
+  const entries: Record<string, NavFileEntry> = JSON.parse(readFileSync(file, 'utf8'))
+  return Object.fromEntries(
+    Object.entries(entries).map(([key, entry]) => {
+      if (entry.icon && !(entry.icon in icons)) {
+        throw new Error(`navigation.json: "${key}" names an icon the site does not have: ${entry.icon}`)
+      }
+      return [key, { name: entry.name, icon: entry.icon ? icons[entry.icon] : undefined, under: entry.under }]
+    }),
+  )
+}
+
+const navigation = loadNavigation()
 
 // Icon-only controls, keyed by what a doc would call them. Each name is the control's accessibility
 // label in the app, so it stays the word a reader hears from TalkBack even though nothing draws it.

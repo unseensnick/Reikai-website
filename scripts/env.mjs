@@ -55,11 +55,21 @@ export const APP_REPO = appRepo()
 export const DOCS_REF = process.env.REIKAI_DOCS_REF ?? currentBranch(APP_REPO) ?? 'main'
 export const GITHUB_TOKEN = process.env.GITHUB_TOKEN ?? ''
 
+// The site is built twice: the stable docs at the root, read from the app repo's main branch, and the
+// nightly docs under /preview/, read from the commit the latest nightly was built from. Only the
+// stable build carries the download, changelog, related and privacy pages; the preview build is the
+// docs alone, and links back to those pages at the root.
+export const SITE_VARIANT = process.env.REIKAI_SITE_VARIANT === 'preview' ? 'preview' : 'stable'
+export const PREVIEW = SITE_VARIANT === 'preview'
+export const SITE_ORIGIN = 'https://reikai.app'
+// The branch "Edit this page" opens. A preview build reads a commit, which GitHub cannot edit.
+export const EDIT_REF = process.env.REIKAI_EDIT_REF ?? DOCS_REF
+
 // Make the resolved values visible to anything downstream that reads process.env, including the
 // VitePress data loader, which runs in this same process during a build.
 process.env.REIKAI_APP_REPO = APP_REPO
 process.env.REIKAI_DOCS_REF = DOCS_REF
 
 export function describe() {
-  return `app repo ${APP_REPO}, docs ref ${DOCS_REF}, GitHub token ${GITHUB_TOKEN ? 'set' : 'not set'}`
+  return `${SITE_VARIANT} build, app repo ${APP_REPO}, docs ref ${DOCS_REF}, GitHub token ${GITHUB_TOKEN ? 'set' : 'not set'}`
 }

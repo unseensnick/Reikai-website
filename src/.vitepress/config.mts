@@ -1,6 +1,9 @@
 // Loads .env and resolves defaults before anything else runs, so the release data loader in
 // this same process sees GITHUB_TOKEN without the caller having to export it.
-import '../../scripts/env.mjs'
+import { EDIT_REF, PREVIEW, SITE_ORIGIN } from '../../scripts/env.mjs'
+import { existsSync } from 'node:fs'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vitepress'
 // @ts-expect-error no bundled types
 import shortcodePlugin from 'markdown-it-shortcode-tag'
@@ -9,11 +12,16 @@ import shortcodes from './shortcodes'
 
 const REPO = 'https://github.com/unseensnick/Reikai'
 
-// Served from the root of its own domain, so the base is just "/". Kept as a constant because
-// VitePress rewrites markdown links, raw HTML `src` attributes and CSS `url()` for the base on its
-// own but does NOT touch hand-written strings in this file, so the two below have to spell it out.
-// Moving the site under a path again means changing this line and nothing else.
-const BASE = '/'
+// The stable build is served from the root of its own domain and the preview build from /preview/.
+// VitePress rewrites markdown links, raw HTML `src` attributes and CSS `url()` for the base on its own
+// but does NOT touch hand-written strings in this file, so those spell it out.
+const BASE = PREVIEW ? '/preview/' : '/'
+
+// Download, changelogs, related and privacy exist only in the stable build. A link to one from the
+// preview build has to be absolute, because VitePress would otherwise put /preview/ in front of it.
+const root = (path: string) => (PREVIEW ? `${SITE_ORIGIN}${path}` : path)
+
+const here = dirname(fileURLToPath(import.meta.url))
 
 // One sidebar everywhere rather than a different one per section. Download, changelogs and the docs
 // are a single small site, and splitting them meant landing on Download with no way back into
@@ -26,10 +34,10 @@ const BASE = '/'
 const sidebar = [
   {
     items: [
-      { text: 'Download', link: '/download/' },
-      { text: 'Changelogs', link: '/changelogs/' },
-      { text: 'Related apps', link: '/related/' },
-      { text: 'Privacy policy', link: '/privacy/' },
+      { text: 'Download', link: root('/download/') },
+      { text: 'Changelogs', link: root('/changelogs/') },
+      { text: 'Related apps', link: root('/related/') },
+      { text: 'Privacy policy', link: root('/privacy/') },
     ],
   },
   {
@@ -92,6 +100,7 @@ const sidebar = [
       // What Reikai adds on top, kept together at the end of the guides rather than in a section of
       // their own: a reader looking for "how do I do X" should find one list, not two.
       { text: 'Multi-source grouping', link: '/docs/multi-source' },
+      { text: 'Library layout', link: '/docs/library-layout' },
       { text: 'Library search', link: '/docs/library-search' },
       { text: 'Related manga', link: '/docs/related-mangas' },
       { text: 'Adult sources', link: '/docs/adult-sources' },
@@ -100,13 +109,35 @@ const sidebar = [
   },
 ]
 
+type SidebarItem = { text?: string; link?: string; items?: SidebarItem[]; collapsed?: boolean }
+
+// One list serves both builds, and each only gets the pages its docs actually have: a page can exist
+// in the nightly docs before the stable ones, and the build fails on a dead link. A group whose own
+// page is gone keeps its children as a plain heading.
+function existingPages(items: SidebarItem[]): SidebarItem[] {
+  return items.flatMap((item) => {
+    const children = item.items ? existingPages(item.items) : undefined
+    const docPage = item.link?.startsWith('/docs/')
+    const exists = !docPage || existsSync(join(here, '..', `${item.link}.md`))
+      || existsSync(join(here, '..', item.link!, 'index.md'))
+    if (!exists && !children?.length) return []
+    return [{ ...item, link: exists ? item.link : undefined, items: children }]
+  })
+}
+
 export default defineConfig({
-  title: 'Reikai',
+  title: PREVIEW ? 'Reikai Nightly' : 'Reikai',
   base: BASE,
   description: 'One library for manga and light novels, on Android.',
   cleanUrls: true,
   lastUpdated: true,
-  head: [['link', { rel: 'icon', href: `${BASE}favicon.svg` }]],
+  // The preview build is docs only.
+  srcExclude: PREVIEW ? ['index.md', 'download/**', 'changelogs/**', 'privacy/**', 'related/**'] : [],
+  head: [
+    ['link', { rel: 'icon', href: `${BASE}favicon.svg` }],
+    // Kept out of search results, so a search for a setting lands on the docs for the release people run.
+    ...(PREVIEW ? [['meta', { name: 'robots', content: 'noindex' }] as [string, Record<string, string>]] : []),
+  ],
 
   markdown: {
     // Required for the "On this page" aside to hold anything. VitePress registers its header
@@ -133,23 +164,34 @@ export default defineConfig({
         text: 'Get Reikai',
         activeMatch: '^/(download|changelogs)',
         items: [
-          { text: 'Download', link: '/download/' },
-          { text: 'Changelogs', link: '/changelogs/' },
+          { text: 'Download', link: root('/download/') },
+          { text: 'Changelogs', link: root('/changelogs/') },
         ],
       },
       { text: 'Docs', link: '/docs/about', activeMatch: '^/docs/' },
+      {
+        // Absolute on both sides, because each build's links are otherwise resolved under its own base.
+        text: PREVIEW ? 'Nightly' : 'Stable',
+        items: [
+          { text: 'Stable', link: `${SITE_ORIGIN}/docs/about` },
+          { text: 'Nightly', link: `${SITE_ORIGIN}/preview/docs/about` },
+        ],
+      },
     ],
 
     // Mihon's depth: headings two and three deep, so a long settings page can be navigated from the
     // aside instead of by scrolling. Their themeConfig sets the same.
     outline: [2, 3],
 
-    sidebar,
+    sidebar: existingPages(sidebar),
+
+    // Read by PreviewBanner.vue.
+    preview: PREVIEW,
 
     socialLinks: [{ icon: 'github', link: REPO }],
 
     editLink: {
-      pattern: `${REPO}/edit/main/docs/:path`,
+      pattern: `${REPO}/edit/${EDIT_REF}/:path`,
       text: 'Edit this page on GitHub',
     },
 
@@ -162,7 +204,7 @@ export default defineConfig({
         + ' <span class="divider">|</span> '
         + '<a href="https://www.mozilla.org/MPL/2.0/">MPL-2.0 site</a>'
         + ' <span class="divider">|</span> '
-        + `<a href="${BASE}privacy/">Privacy policy</a>`,
+        + `<a href="${root('/privacy/')}">Privacy policy</a>`,
       copyright:
         `Copyright © ${new Date().getFullYear()} <a href="${REPO}">Reikai</a>`
         + ' · Built on <a href="https://mihon.app">Mihon</a>',

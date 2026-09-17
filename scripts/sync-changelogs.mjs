@@ -10,8 +10,14 @@
 import { writeFile, mkdir } from 'node:fs/promises'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import './env.mjs'
+import { PREVIEW } from './env.mjs'
 import { allReleases } from './releases.mjs'
+
+// The changelog page is built into the stable site only, so the preview build skips the API calls.
+if (PREVIEW) {
+  console.log('sync-changelogs: skipped for the preview build')
+  process.exit(0)
+}
 
 const here = dirname(fileURLToPath(import.meta.url))
 const OUT = resolve(here, '../src/changelogs/index.md')

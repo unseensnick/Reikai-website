@@ -35,18 +35,19 @@ for them.
 
 **Trackers.** If you sign in to a tracking service, your reading progress goes to that service, which
 is the point of tracking. It sees only the entries you bind to it, and signing out stops it. The
-[tracking guide](/docs/guides/tracking) lists every service supported, including three built for
-light novels. Three more in that list, Komga, Kavita and Suwayomi, are servers you run yourself.
+[tracking guide](/docs/guides/tracking) lists every service supported. Three in that list, Komga,
+Kavita and Suwayomi, are servers you run yourself.
 
 **Update checks.** The in-app updater asks GitHub whether a newer release exists.
 
 ## Crash reports and analytics
 
-Official builds include Firebase Crashlytics and Analytics.
+The standard APKs include Firebase Crashlytics and Analytics. They only start in the app as it is
+published, signed with the release key, on a device with Google Play services.
 
 ::: warning Both are on by default
 You are shown both switches during first-run setup, and they live in <nav to="security-and-privacy">
-afterwards, under **Firebase**.
+afterwards, under **Analytics and Crash logs**.
 :::
 
 - **Send crash logs** sends an anonymised report when the app crashes: the stack trace and coarse
@@ -61,18 +62,21 @@ Both are Google services, and what they do with what they receive is governed by
 [Google Analytics](https://www.google.com/analytics/terms/), plus
 [how Google uses data from apps that use them](https://policies.google.com/technologies/partner-sites).
 
-If you would rather the code not be in the app at all, build it yourself without the
-`-Pinclude-telemetry` flag: telemetry is compiled in only when that flag is passed, and the release
-workflow passes it. A build without it has nothing to switch off.
+If you would rather the code not be in the app at all, install the **FOSS** APK from the
+[download page](/download/): it is built without telemetry, so it has nothing to switch off. It installs
+as a separate app. Building the app yourself without the `-Pinclude-telemetry` flag gives the same.
 
 ## Optional things that talk to other machines
+
+The [related manga](/docs/related-mangas) row is on by default. It asks the current source and public
+tracker endpoints for recommendations, without signing you in to anything. Both can be turned off in
+its settings.
 
 These are off until you set them up:
 
 - A [Cloudflare bypass proxy](/docs/flaresolverr) routes requests through a server **you** run.
-- The [related manga](/docs/related-mangas) row asks public tracker endpoints for recommendations,
-  and, once you opt in per tracker, reads your tracker library to build a taste profile. That profile
-  is stored on your device.
+- The related manga taste profile, which reads your library from the trackers you opt in to. That
+  profile is stored on your device.
 - The built-in [adult sources](/docs/adult-sources) can sync favorites with an account you sign in to.
 
 ## Sites this app sends you to

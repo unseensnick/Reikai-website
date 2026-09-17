@@ -1,21 +1,25 @@
 name: Deploy site
 
 # The site is built from two repositories: this one, and the app repo, which is where the user docs
-# actually live (scripts/sync-docs.mjs reads them at build time). So the build checks out both and
-# points REIKAI_APP_REPO at the second one.
+# actually live (scripts/sync-docs.mjs reads them at build time). It is built twice:
+#
+#   - the stable docs at the root, from the app repo's main branch, which is the released app;
+#   - the nightly docs under /preview/, from the commit the latest nightly was built from, so they
+#     describe exactly what a nightly user is running.
+#
+# The download, changelog, related and privacy pages are built into the stable half only.
 
 on:
   push:
     branches: [main]
   # The docs live in the app repo, so a change there does not push here. That repo's deploy-docs.yml
-  # sends docs-updated once its push has landed, which is the ordering that matters: a deploy started
-  # before the push checks out the old docs and publishes a stale site.
+  # sends docs-updated once a push to its main has landed, which is the ordering that matters: a
+  # deploy started before the push checks out the old docs and publishes a stale site.
   #
-  # app-release is the other half. The download page reads its versions from the releases API at
-  # build time, so publishing a release changes nothing until something rebuilds the site, and a
-  # release that touches no docs used to leave that page advertising the previous version for days.
-  # The app repo's site-release.yml and nightly.yml send it. It carries no ref: a release must
-  # refresh the version numbers without also moving which branch the docs are built from.
+  # app-release is the other half. nightly.yml and site-release.yml send it when a build is published,
+  # which is what moves the nightly docs to that build's commit and refreshes the download page's
+  # version numbers. Neither payload chooses what is built: both halves are always rebuilt from main
+  # and from the latest nightly.
   repository_dispatch:
     types: [docs-updated, app-release]
   workflow_dispatch:
@@ -31,11 +35,12 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  # The branch of the app repo the docs are read from, and the ref that links into that repo point
-  # at. A dispatch from that repo names the branch it came from, so the literal below is only the
-  # fallback for a push here or a manual run, and it does not have to be edited when a release
-  # branch changes.
-  APP_REF: ${{ github.event.client_payload.ref || 'feat/0.4.0' }}
+  APP_REPO: unseensnick/Reikai
+  NIGHTLY_REPO: unseensnick/Reikai-preview
+  # The working branch nightlies are built from. Used when the latest nightly's commit cannot be read,
+  # and for the preview docs' "Edit this page" link, since GitHub cannot edit at a commit. Set the
+  # PREVIEW_BRANCH repository variable when a new release branch starts.
+  PREVIEW_BRANCH: ${{ vars.PREVIEW_BRANCH || 'feat/0.4.0' }}
 
 jobs:
   build:
@@ -46,12 +51,46 @@ jobs:
         with:
           path: website
 
-      - name: Check out the app repo for its docs
+      - name: Find the commit the latest nightly was built from
+        id: nightly
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Each nightly's tag hangs on a stamp commit in the nightly repo whose message names the app
+          # commit it was built from, as "nightly r<N> (<sha>)" (the app repo's stamp-nightly-commit.sh
+          # writes it, and scripts/ci/lib.sh reads it the same way). Drafts have no tag, so skip them.
+          tag=$(gh release list --repo "$NIGHTLY_REPO" --exclude-drafts --json tagName --limit 1 \
+            --jq 'select(length > 0) | .[0].tagName' || true)
+          short=""
+          if [ -n "$tag" ]; then
+            short=$(gh api "repos/$NIGHTLY_REPO/commits/$tag" --jq '.commit.message' 2>/dev/null \
+              | sed -n 's/^\(preview\|nightly\) r[0-9]* (\([0-9a-f]\{7,40\}\))$/\2/p' | head -1)
+          fi
+          sha=""
+          if [ -n "$short" ]; then
+            sha=$(gh api "repos/$APP_REPO/commits/$short" --jq '.sha' 2>/dev/null || true)
+          fi
+          if [ -n "$sha" ]; then
+            echo "Nightly docs from $tag at ${sha:0:9}."
+            echo "ref=$sha" >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning::Could not read the latest nightly's commit, so the nightly docs are built from $PREVIEW_BRANCH."
+            echo "ref=$PREVIEW_BRANCH" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Check out the app repo at main for the stable docs
         uses: actions/checkout@v7
         with:
-          repository: unseensnick/Reikai
-          ref: ${{ env.APP_REF }}
-          path: app
+          repository: ${{ env.APP_REPO }}
+          ref: main
+          path: app-stable
+
+      - name: Check out the app repo at the nightly's commit for the nightly docs
+        uses: actions/checkout@v7
+        with:
+          repository: ${{ env.APP_REPO }}
+          ref: ${{ steps.nightly.outputs.ref }}
+          path: app-preview
 
       - uses: actions/setup-node@v7
         with:
@@ -62,21 +101,40 @@ jobs:
       - run: npm ci
         working-directory: website
 
-      - run: npm run build
+      - name: Build the stable site
+        run: |
+          npm run build
+          mv src/.vitepress/dist "$RUNNER_TEMP/site"
         working-directory: website
         env:
-          REIKAI_APP_REPO: ${{ github.workspace }}/app
-          REIKAI_DOCS_REF: ${{ env.APP_REF }}
+          REIKAI_SITE_VARIANT: stable
+          REIKAI_APP_REPO: ${{ github.workspace }}/app-stable
+          REIKAI_DOCS_REF: main
+          REIKAI_EDIT_REF: main
           # Lifts the releases-API rate limit that the download and changelog pages both hit. The
           # build works without it until a busy runner IP reaches the cap, and then those two pages
           # come up empty rather than failing, so this is worth passing.
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Build the nightly docs into /preview/
+        run: |
+          npm run build
+          mv src/.vitepress/dist "$RUNNER_TEMP/site/preview"
+          # The preview build is docs only, so /preview/ itself has no page. Send it to the docs.
+          printf '<!doctype html><meta charset="utf-8"><meta name="robots" content="noindex">\n<meta http-equiv="refresh" content="0; url=/preview/docs/about">\n<link rel="canonical" href="/preview/docs/about">\n' \
+            > "$RUNNER_TEMP/site/preview/index.html"
+        working-directory: website
+        env:
+          REIKAI_SITE_VARIANT: preview
+          REIKAI_APP_REPO: ${{ github.workspace }}/app-preview
+          REIKAI_DOCS_REF: ${{ steps.nightly.outputs.ref }}
+          REIKAI_EDIT_REF: ${{ env.PREVIEW_BRANCH }}
+
       - uses: actions/configure-pages@v6
 
       - uses: actions/upload-pages-artifact@v5
         with:
-          path: website/src/.vitepress/dist
+          path: ${{ runner.temp }}/site
 
   deploy:
     needs: build

@@ -26,17 +26,20 @@ One library for manga and light novels, on Android.
 The site carries everything a Reikai user needs: how to install it, what each setting does, and how
 the features it adds on top of Mihon work.
 
-- **Download** for the stable and nightly builds, with per-architecture APKs and the latest release
-  notes.
+- **Download** for the stable, nightly and FOSS builds, with per-architecture APKs and the latest
+  release notes.
 - **Guides** for getting started, the reader, backups, tracking, categories, the local source,
   source migration and troubleshooting.
-- **Frequently asked questions** for the library, the reader, downloads, storage and browsing.
+- **Frequently asked questions** for the app in general, the library, updates, the reader, downloads,
+  storage, settings and browsing.
+- **Two sets of docs.** The root describes the stable release; `/preview/` describes the latest
+  nightly build, marked with a banner and kept out of search engines.
 - **Related apps**, the other readers in the same lineage, and a **privacy policy** covering what
   the app stores and what it sends.
 
 **Live at [reikai.app](https://reikai.app)**, deployed to GitHub Pages by
-`.github/workflows/deploy.yml` on every push to `main`. The docs live in the app repo, so a change
-there does not trigger a build: run the workflow by hand after one.
+`.github/workflows/deploy.yml`. It runs on a push to `main` here, when the app repo pushes a docs
+change to its `main`, and when the app publishes a stable or nightly build.
 
 `src/public/CNAME` is what holds the domain. It has to be in the built output, because an Actions
 deploy replaces the site wholesale each run and would drop a `CNAME` that only existed in the repo's
@@ -60,6 +63,8 @@ a one-off still works.
   "unavailable" and the changelog page comes up empty. No scopes needed.
 - **`REIKAI_APP_REPO`** if the app repo is not at `../app`.
 - **`REIKAI_DOCS_REF`** to pin the ref that links into the app repo point at.
+- **`REIKAI_SITE_VARIANT`** set to `preview` for the nightly docs build under `/preview/`.
+- **`REIKAI_EDIT_REF`** for the branch "Edit this page" opens, when the docs ref is a commit.
 
 ## Where the pages come from
 
@@ -67,6 +72,12 @@ a one-off still works.
 time, so there is never a second copy to drift from the code that invalidates it, and
 `scripts/sync-changelogs.mjs` builds the changelog page from the releases API. Both run as part of
 `npm run dev` and `npm run build`, and both write into gitignored directories.
+
+**The site is built twice.** The stable build reads the app repo's `main` and is served at the root.
+The preview build reads the commit the latest nightly was built from and is served under `/preview/`,
+with the docs only. `REIKAI_SITE_VARIANT=preview` selects it locally. The menu labels the `<nav>`
+chips render come from `docs/navigation.json` in the app repo, so each build uses the labels of the
+app it describes.
 
 ## Checking your work
 

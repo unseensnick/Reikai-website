@@ -18,7 +18,7 @@ import { readdir, readFile, writeFile, mkdir, copyFile, rm } from 'node:fs/promi
 import { existsSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { APP_REPO as APP_REPO_RESOLVED, DOCS_REF, describe } from './env.mjs'
+import { APP_REPO as APP_REPO_RESOLVED, DOCS_REF, PREVIEW, SITE_ORIGIN, describe } from './env.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const APP_REPO = APP_REPO_RESOLVED
@@ -33,7 +33,9 @@ const BLOB = `https://github.com/unseensnick/Reikai/blob/${DOCS_REF}`
 // doc map and describes three tiers of docs of which only one is published here; `dev/` is the
 // implementation records; `guides/PORTING.md` is the record of the Mihon port, addressed to whoever
 // edits those guides next. All three read as user docs to a walker and are not.
-const SKIP = new Set(['README.md', 'dev', 'guides/PORTING.md'])
+//
+// `navigation.json` is the app's menu map, read by shortcodes.ts at build time rather than published.
+const SKIP = new Set(['README.md', 'dev', 'guides/PORTING.md', 'navigation.json'])
 
 // Singular and plural both occur ("_Dev record:_" on a doc with one record), and missing a variant
 // leaves the line in with links this site does not publish.
@@ -48,10 +50,15 @@ function repoPath(link) {
   return `docs/${link}`
 }
 
+// Pages only the stable build has. The preview build serves under /preview/, so a doc link to one of
+// them has to leave that base for the root, or it points at a page that build never made.
+const ROOT_PAGE_LINK = /\]\(\/(download|changelogs|privacy|related)\//g
+
 function transform(markdown) {
-  return markdown
+  const text = markdown
     .replace(DEV_FOOTER, '')
     .replace(REPO_LINK, (_, link) => `](${BLOB}/${repoPath(link)})`)
+  return (PREVIEW ? text.replace(ROOT_PAGE_LINK, (_, page) => `](${SITE_ORIGIN}/${page}/`) : text)
     .replace(/\n{3,}/g, '\n\n')
     .trimStart()
 }
