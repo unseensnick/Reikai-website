@@ -1,10 +1,10 @@
 // Loads .env and resolves defaults before anything else runs, so the release data loader in
 // this same process sees GITHUB_TOKEN without the caller having to export it.
 import { EDIT_REF, PREVIEW, SITE_ORIGIN } from '../../scripts/env.mjs'
-import { existsSync } from 'node:fs'
+import { existsSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { defineConfig } from 'vitepress'
+import { defineConfig, type HeadConfig } from 'vitepress'
 // @ts-expect-error no bundled types
 import shortcodePlugin from 'markdown-it-shortcode-tag'
 import { tabsMarkdownPlugin } from 'vitepress-plugin-tabs'
@@ -30,6 +30,24 @@ const rootLink = (text: string, path: string) =>
   (PREVIEW ? { text, link: root(path), ...CROSS_BUILD } : { text, link: path })
 
 const here = dirname(fileURLToPath(import.meta.url))
+
+const DESCRIPTION = 'One library for manga and light novels, on Android.'
+
+// Per page, what a link preview reads: the page's own title, description and address. VitePress
+// writes the description meta itself; the Open Graph and canonical tags are ours. Mihon's
+// generateMeta hook is the reference, without its generated per-page images.
+function pageMeta(relativePath: string, title: string, description: string): HeadConfig[] {
+  const path = relativePath.replace(/(^|\/)index\.md$/, '$1').replace(/\.md$/, '')
+  const url = `${SITE_ORIGIN}${BASE}${path}`
+  return [
+    ['link', { rel: 'canonical', href: url }],
+    ['meta', { property: 'og:url', content: url }],
+    ['meta', { property: 'og:title', content: title }],
+    ['meta', { property: 'og:description', content: description }],
+    ['meta', { name: 'twitter:title', content: title }],
+    ['meta', { name: 'twitter:description', content: description }],
+  ]
+}
 
 // One sidebar everywhere rather than a different one per section. Download, changelogs and the docs
 // are a single small site, and splitting them meant landing on Download with no way back into
@@ -151,13 +169,36 @@ export default defineConfig({
   transformPageData(pageData) {
     if (PREVIEW && pageData.relativePath === 'docs/about.md') pageData.frontmatter.prev = false
   },
-  description: 'One library for manga and light novels, on Android.',
+  description: DESCRIPTION,
   cleanUrls: true,
+  // Stable only. VitePress writes sitemap URLs without the base, so the preview build's would name
+  // pages at the root, and that build asks not to be indexed anyway. The sandbox is noindex too.
+  sitemap: PREVIEW
+    ? undefined
+    : { hostname: SITE_ORIGIN, transformItems: (items) => items.filter((item) => !item.url.startsWith('sandbox')) },
+  transformHead: ({ pageData, title, description }) =>
+    pageMeta(pageData.relativePath, title, description || DESCRIPTION),
+  // Where crawlers find the sitemap. Written here rather than kept in public/, because the sitemap's
+  // address depends on the origin being built for.
+  buildEnd(siteConfig) {
+    if (PREVIEW) return
+    writeFileSync(
+      join(siteConfig.outDir, 'robots.txt'),
+      `User-agent: *\nAllow: /\n\nSitemap: ${SITE_ORIGIN}/sitemap.xml\n`,
+    )
+  },
   lastUpdated: true,
   // The preview build is docs only.
   srcExclude: PREVIEW ? ['index.md', 'download/**', 'changelogs/**', 'privacy/**', 'related/**'] : [],
   head: [
     ['link', { rel: 'icon', href: `${BASE}favicon.svg` }],
+    ['meta', { property: 'og:site_name', content: PREVIEW ? 'Reikai Nightly' : 'Reikai' }],
+    ['meta', { property: 'og:type', content: 'website' }],
+    ['meta', { property: 'og:locale', content: 'en_US' }],
+    // PNG, since not every link preview reads the WebP logo.
+    ['meta', { property: 'og:image', content: `${SITE_ORIGIN}${BASE}og-image.png` }],
+    ['meta', { name: 'twitter:card', content: 'summary' }],
+    ['meta', { name: 'twitter:image', content: `${SITE_ORIGIN}${BASE}og-image.png` }],
     // Kept out of search results, so a search for a setting lands on the docs for the release people run.
     ...(PREVIEW ? [['meta', { name: 'robots', content: 'noindex' }] as [string, Record<string, string>]] : []),
   ],
