@@ -114,6 +114,8 @@ html.dark .only-light {
   --vp-home-hero-image-filter: none;
 }
 .VPHero .image-container { width: auto; height: auto; }
+/* The space after the name in the hero heading: text for search engines, no width on screen. */
+.VPHero .hero-gap { font-size: 0; }
 .VPHero .image-src {
   max-width: 100%;
   max-height: 100%;

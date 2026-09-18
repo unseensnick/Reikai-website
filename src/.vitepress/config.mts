@@ -31,7 +31,9 @@ const rootLink = (text: string, path: string) =>
 
 const here = dirname(fileURLToPath(import.meta.url))
 
-const DESCRIPTION = 'One library for manga and light novels, on Android.'
+const DESCRIPTION =
+  'Reikai is a free and open source Android app that keeps your manga and light novels in one library, '
+  + 'with sources grouped per series, tracking and offline reading.'
 
 // Per page, what a link preview reads: the page's own title, description and address. VitePress
 // writes the description meta itself; the Open Graph and canonical tags are ours. Mihon's
@@ -178,6 +180,9 @@ export default defineConfig({
     : { hostname: SITE_ORIGIN, transformItems: (items) => items.filter((item) => !item.url.startsWith('sandbox')) },
   transformHead: ({ pageData, title, description }) =>
     pageMeta(pageData.relativePath, title, description || DESCRIPTION),
+  // The nav bar's labels ("Appearance" among them) come first in the page, so a search engine
+  // writing its own snippet starts there. data-nosnippet keeps them out; it applies to a div.
+  transformHtml: (code) => code.replace('<div class="VPNavBar"', '<div data-nosnippet class="VPNavBar"'),
   // Where crawlers find the sitemap. Written here rather than kept in public/, because the sitemap's
   // address depends on the origin being built for.
   buildEnd(siteConfig) {

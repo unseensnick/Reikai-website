@@ -2,7 +2,8 @@
 layout: home
 
 hero:
-  name: Reikai
+  # The space is for search engines, which read the heading's two lines as one run of text.
+  name: 'Reikai<span class="hero-gap"> </span>'
   text: One library for manga and light novels
   tagline: A free and open source reader for Android, built on Mihon.
   image:
