@@ -9,7 +9,7 @@ lastUpdated: false
 
 # Related apps
 
-Reikai is one of several Android readers descended from Tachiyomi. They read the same `.tachibk`
+Reikai is one of several Android readers in the Tachiyomi family. Most of them read the same `.tachibk`
 backups, so a library moves between them, and each went in its own direction.
 
 This is context, not a recommendation. None of these projects is affiliated with Reikai or has
@@ -69,9 +69,10 @@ endorsed it, and each description is about that app on its own terms.
 
 ## Moving between them
 
-Every app above except LNReader reads and writes the same backup format, so you can carry a library
-across by backing up in one and restoring in the other. Whatever is specific to the app that wrote
-the file does not travel. See [Backups](/docs/guides/backups) for what does.
+Every app above except LNReader reads and writes the same backup format, so you can carry a manga library
+across by backing up in one and restoring in the other. Light novels are the exception with Tsundoku:
+it saves them differently from Reikai, so they do not come across as novels in either direction.
+Most of what is specific to the app that wrote the file does not travel. See [Backups](/docs/guides/backups) for what does.
 
 Mihon keeps its own [list of the forks it endorses](https://mihon.app/forks/), which is where four of
 the cards above point, since Mihon's pages for those are better than anything this site would write.
