@@ -27,12 +27,12 @@ features:
     link: /docs/guides/getting-started
     linkText: Get started
   - title: One series, however many sources
-    details: A novel followed on two sites, or a manga on four, is one card with a source switcher. Merge and split by hand when the titles do not match, then read the group as a single chapter list.
+    details: A novel followed on two sites, or a manga on four, can be one card with a source switcher. Reikai offers to group a same-titled series as you add it, and you can merge and split by hand when the titles do not match, then read the group as a single chapter list.
     icon: <svg viewBox="0 -960 960 960" width="24" height="24" fill="var(--vp-c-green-2)" xmlns="http://www.w3.org/2000/svg"><path d="M440-160v-326L336-382l-56-58 200-200 200 200-56 58-104-104v326h-80ZM160-600v-120q0-33 23.5-56.5T240-800h480q33 0 56.5 23.5T800-720v120h-80v-120H240v120h-80Z"/></svg>
     link: /docs/multi-source
     linkText: How grouping works
   - title: Suggestions ranked by what you read
-    details: Every manga carries a row of similar titles under its description. Reikai reorders that row from the tags on everything you have tracked, so the front of it comes out of your own library.
+    details: Every manga carries a row of similar titles under its description. Let Reikai pull your tracker library and it reorders that row from the tags on everything you have tracked, so the front of it comes out of your own library.
     icon: <svg viewBox="0 -960 960 960" width="24" height="24" fill="var(--vp-c-yellow-2)" xmlns="http://www.w3.org/2000/svg"><path d="m105-233-65-47 200-320 120 140 160-260 109 163q-23 1-43.5 5.5T545-539l-22-33-152 247-121-141-145 233ZM863-40 738-165q-20 14-44.5 21t-50.5 7q-75 0-127.5-52.5T463-317q0-75 52.5-127.5T643-497q75 0 127.5 52.5T823-317q0 26-7 50.5T795-221L920-97l-57 57ZM643-217q42 0 71-29t29-71q0-42-29-71t-71-29q-42 0-71 29t-29 71q0 42 29 71t71 29Zm89-320q-19-8-39.5-13t-42.5-6l205-324 65 47-188 296Z"/></svg>
     link: /docs/related-mangas#your-taste-profile
     linkText: How the taste profile works

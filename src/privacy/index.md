@@ -9,8 +9,8 @@ lastUpdated: false
 
 # Privacy policy
 
-Reikai has no accounts and no server of its own. Your library lives on your device, and the app only
-talks to services you point it at.
+Reikai has no accounts and no server of its own. Your library lives on your device, and apart from the
+defaults described below, the app only talks to services you point it at.
 
 This page describes the official builds from the [releases page](https://github.com/unseensnick/Reikai/releases).
 A build you compile yourself behaves differently where noted.
@@ -21,17 +21,20 @@ Everything that makes up your library: entries, categories, reading progress and
 chapters, and every setting.
 
 Backups are files you create and keep. Nothing uploads them anywhere. One backup option,
-**Include sensitive settings**, adds your tracker and source sign-ins to the file, so a backup made
-with it on should be treated like a password.
+**Include sensitive settings**, adds your tracker sign-ins and the sign-ins Reikai keeps for its
+built-in sources and novel plugins to the file. An extension's own settings, which can hold a username
+and password, are saved whenever **Source settings** is included, which it is by default. Treat any
+backup like a password.
 
 ## What leaves your device
 
 **Sources.** Reading anything means fetching it, so the site behind a source sees the requests your
 device makes, as any website would. Reikai hosts no content and runs no proxy.
 
-**Extensions and plugins are third-party code with full access to the app.** What a given one sends,
-and to whom, is between you and whoever published it. Reikai does not audit them and cannot vouch
-for them.
+**Extensions and plugins are third-party code.** An extension runs inside the app with the same access
+the app has. A plugin runs in a sandbox, but can still send requests to any site, along with any cookies
+the app holds for that site. What a given one sends, and to whom, is between you and whoever published
+it. Reikai does not audit them and cannot vouch for them.
 
 **Trackers.** If you sign in to a tracking service, your reading progress goes to that service, which
 is the point of tracking. It sees only the entries you bind to it, and signing out stops it. The
@@ -64,12 +67,14 @@ Both are Google services, and what they do with what they receive is governed by
 
 If you would rather the code not be in the app at all, install the **FOSS** APK from the
 [download page](/download/): it is built without telemetry, so it has nothing to switch off. It installs
-as a separate app. Building the app yourself without the `-Pinclude-telemetry` flag gives the same.
+as a separate app. A plain build of your own, with no `-Pinclude-telemetry` flag and no `-Pdist=github`
+or `-Pdist=ci`, gives the same.
 
 ## Optional things that talk to other machines
 
 The [related manga](/docs/related-mangas) row is on by default. It asks the current source and public
-tracker endpoints for recommendations, without signing you in to anything. Both can be turned off in
+tracker services (AniList, MangaUpdates, Shikimori, and Jikan, a public mirror of MyAnimeList) for
+recommendations, without signing you in to anything. Both can be turned off in
 its settings.
 
 These are off until you set them up:
@@ -77,7 +82,9 @@ These are off until you set them up:
 - A [Cloudflare bypass proxy](/docs/flaresolverr) routes requests through a server **you** run.
 - The related manga taste profile, which reads your library from the trackers you opt in to. That
   profile is stored on your device.
-- The built-in [adult sources](/docs/adult-sources) can sync favorites with an account you sign in to.
+- The built-in [adult sources](/docs/adult-sources) can back up your favorites to your account on
+  that site (a one-way push, off by default).
+- Browsing or adding a novel reader font from Google Fonts fetches the font list and the font from Google.
 
 ## Sites this app sends you to
 
