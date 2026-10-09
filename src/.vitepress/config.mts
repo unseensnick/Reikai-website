@@ -55,10 +55,10 @@ function pageMeta(relativePath: string, title: string, description: string): Hea
 // are a single small site, and splitting them meant landing on Download with no way back into
 // anything except the top nav.
 //
-// The shape follows Mihon's own sidebar: an unlabelled group of site pages first, then Frequently
-// Asked Questions, then Guides, with multi-page topics nested and collapsed. Reikai's own pages are
-// filed into those two groups by what they are rather than by where they came from, so a reader
-// looking for tracking finds one Tracking page, not a Mihon one and a Reikai one.
+// An unlabelled group of site pages comes first, as in Mihon's sidebar. The docs after it are grouped
+// by what a reader wants to do rather than by where a page came from, so someone looking for tracking
+// finds one Tracking entry, not a Mihon one and a Reikai one. The settings references sit apart from
+// the task guides under Reference, and the FAQ comes last.
 const sidebar = [
   {
     items: [
@@ -69,10 +69,84 @@ const sidebar = [
     ],
   },
   {
-    text: 'Frequently Asked Questions',
+    text: 'Start here',
     items: [
-      // Reikai's own FAQ leads: it answers what the app is and where to get it, which is what a
-      // first-time reader is here for. The rest is Mihon's, covering behaviour both apps share.
+      { text: 'Getting started', link: '/docs/guides/getting-started' },
+      { text: 'Before you upgrade', link: '/docs/before-you-upgrade' },
+    ],
+  },
+  {
+    text: 'Library',
+    collapsed: true,
+    items: [
+      { text: 'Layout', link: '/docs/library-layout' },
+      { text: 'Search', link: '/docs/library-search' },
+      { text: 'Categories', link: '/docs/guides/categories' },
+      { text: 'Merged series', link: '/docs/multi-source' },
+    ],
+  },
+  {
+    text: 'Sources',
+    collapsed: true,
+    items: [
+      { text: 'Extensions and plugins', link: '/docs/faq/browse/extensions' },
+      { text: 'Feed and saved searches', link: '/docs/feed' },
+      { text: 'Opening shared links', link: '/docs/shared-links' },
+      {
+        text: 'Local source',
+        link: '/docs/guides/local-source/',
+        collapsed: true,
+        items: [{ text: 'Advanced editing', link: '/docs/guides/local-source/advanced' }],
+      },
+      { text: 'Adult sources', link: '/docs/adult-sources' },
+      // Installs extension apps without a prompt each time, so it sits with the sources it installs.
+      { text: 'Shizuku', link: '/docs/guides/shizuku' },
+    ],
+  },
+  {
+    text: 'Reading',
+    collapsed: true,
+    items: [
+      // There is no task guide for the manga reader, so it opens its settings reference, which Reference
+      // lists again beside the novel one.
+      { text: 'Manga reader', link: '/docs/guides/reader-settings' },
+      { text: 'Novel reader', link: '/docs/novel-reader' },
+    ],
+  },
+  { text: 'Updates and History', link: '/docs/recents' },
+  { text: 'Downloads', link: '/docs/faq/downloads' },
+  { text: 'Tracking', link: '/docs/guides/tracking' },
+  { text: 'Recommendations', link: '/docs/related-mangas' },
+  { text: 'Migration', link: '/docs/guides/source-migration' },
+  { text: 'Backups', link: '/docs/guides/backups' },
+  {
+    text: 'Troubleshooting',
+    collapsed: true,
+    items: [
+      { text: 'Overview', link: '/docs/guides/troubleshooting/' },
+      { text: 'Common issues', link: '/docs/guides/troubleshooting/common-issues' },
+      { text: 'Diagnosis', link: '/docs/guides/troubleshooting/diagnosis' },
+      {
+        text: 'Cloudflare',
+        link: '/docs/guides/troubleshooting/#cloudflare',
+        collapsed: true,
+        items: [{ text: 'Bypass proxy', link: '/docs/flaresolverr' }],
+      },
+    ],
+  },
+  {
+    text: 'Reference',
+    collapsed: true,
+    items: [
+      { text: 'Manga reader settings', link: '/docs/guides/reader-settings' },
+      { text: 'Novel reader settings', link: '/docs/guides/novel-reader-settings' },
+      { text: 'Built-in sources', link: '/docs/built-in-sources' },
+    ],
+  },
+  {
+    text: 'FAQ',
+    collapsed: true,
+    items: [
       { text: 'Reikai', link: '/docs/about' },
       { text: 'General', link: '/docs/faq/general' },
       { text: 'Library', link: '/docs/faq/library' },
@@ -88,62 +162,11 @@ const sidebar = [
         text: 'Browse',
         link: '/docs/faq/browse/',
         collapsed: true,
-        items: [
-          { text: 'Extensions', link: '/docs/faq/browse/extensions' },
-          { text: 'Local source', link: '/docs/faq/browse/local-source' },
-          { text: 'Built-in sources', link: '/docs/built-in-sources' },
-        ],
+        items: [{ text: 'Local source', link: '/docs/faq/browse/local-source' }],
       },
-      { text: 'Downloads', link: '/docs/faq/downloads' },
       { text: 'Reader', link: '/docs/faq/reader' },
       { text: 'Settings', link: '/docs/faq/settings' },
       { text: 'Storage', link: '/docs/faq/storage' },
-    ],
-  },
-  {
-    text: 'Guides',
-    items: [
-      { text: 'Getting started', link: '/docs/guides/getting-started' },
-      {
-        text: 'Troubleshooting',
-        link: '/docs/guides/troubleshooting/',
-        collapsed: true,
-        items: [
-          { text: 'Common issues', link: '/docs/guides/troubleshooting/common-issues' },
-          { text: 'Diagnosis', link: '/docs/guides/troubleshooting/diagnosis' },
-        ],
-      },
-      // A setup guide for a proxy you run, not a fix for an error, so it sits beside Troubleshooting
-      // rather than inside it.
-      { text: 'Cloudflare bypass', link: '/docs/flaresolverr' },
-      { text: 'Source migration', link: '/docs/guides/source-migration' },
-      { text: 'Backups', link: '/docs/guides/backups' },
-      { text: 'Tracking', link: '/docs/guides/tracking' },
-      { text: 'Categories', link: '/docs/guides/categories' },
-      {
-        text: 'Local source',
-        link: '/docs/guides/local-source/',
-        collapsed: true,
-        items: [{ text: 'Advanced editing', link: '/docs/guides/local-source/advanced' }],
-      },
-      { text: 'Reader settings', link: '/docs/guides/reader-settings' },
-      // What Reikai adds on top, kept together at the end of the guides rather than in a section of
-      // their own: a reader looking for "how do I do X" should find one list, not two.
-      { text: 'Multi-source grouping', link: '/docs/multi-source' },
-      {
-        text: 'Library',
-        collapsed: true,
-        items: [
-          { text: 'Layout', link: '/docs/library-layout' },
-          { text: 'Search', link: '/docs/library-search' },
-        ],
-      },
-      { text: 'Recents', link: '/docs/recents' },
-      { text: 'Feed and saved searches', link: '/docs/feed' },
-      { text: 'Opening shared links', link: '/docs/shared-links' },
-      { text: 'Related manga', link: '/docs/related-mangas' },
-      { text: 'Adult sources', link: '/docs/adult-sources' },
-      { text: 'Shizuku', link: '/docs/guides/shizuku' },
     ],
   },
 ]
@@ -157,8 +180,10 @@ function existingPages(items: SidebarItem[]): SidebarItem[] {
   return items.flatMap((item) => {
     const children = item.items ? existingPages(item.items) : undefined
     const docPage = item.link?.startsWith('/docs/')
-    const exists = !docPage || existsSync(join(here, '..', `${item.link}.md`))
-      || existsSync(join(here, '..', item.link!, 'index.md'))
+    // A link to a section of a page exists when the page does.
+    const page = item.link?.split('#')[0]
+    const exists = !docPage || existsSync(join(here, '..', `${page}.md`))
+      || existsSync(join(here, '..', page!, 'index.md'))
     if (!exists && !children?.length) return []
     return [{ ...item, link: exists ? item.link : undefined, items: children }]
   })
@@ -172,7 +197,7 @@ export default defineConfig({
   // The first doc's "Previous page" link would be the last site page, which in the Nightly build is on
   // the stable site. The page footer cannot take a target, so it would open a new tab; drop it instead.
   transformPageData(pageData) {
-    if (PREVIEW && pageData.relativePath === 'docs/about.md') pageData.frontmatter.prev = false
+    if (PREVIEW && pageData.relativePath === 'docs/guides/getting-started.md') pageData.frontmatter.prev = false
   },
   description: DESCRIPTION,
   cleanUrls: true,
@@ -251,7 +276,7 @@ export default defineConfig({
           rootLink('Changelogs', '/changelogs/'),
         ],
       },
-      { text: 'Docs', link: '/docs/about', activeMatch: '^/docs/' },
+      { text: 'Docs', link: '/docs/guides/getting-started', activeMatch: '^/docs/' },
       {
         // Absolute on both sides, because each build's links are otherwise resolved under its own base.
         text: PREVIEW ? 'Nightly' : 'Stable',
