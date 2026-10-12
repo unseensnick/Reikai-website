@@ -51,122 +51,98 @@ function pageMeta(relativePath: string, title: string, description: string): Hea
   ]
 }
 
-// One sidebar everywhere rather than a different one per section. Download, changelogs and the docs
-// are a single small site, and splitting them meant landing on Download with no way back into
-// anything except the top nav.
+// One sidebar everywhere rather than a different one per section, so landing on any page leaves every
+// other page one click away. It holds the docs only: Download, Changelogs, Related apps and Privacy live
+// in the top nav's Get Reikai menu, where they do not push the docs down or, on the Nightly build, open
+// the stable site from the middle of the docs.
 //
-// An unlabelled group of site pages comes first, as in Mihon's sidebar. The docs after it are grouped
-// by what a reader wants to do rather than by where a page came from, so someone looking for tracking
-// finds one Tracking entry, not a Mihon one and a Reikai one. The settings references sit apart from
-// the task guides under Reference, and the FAQ comes last.
+// Pages are grouped by what a reader wants to do, not by where a page came from, so tracking is one
+// Tracking entry rather than a Mihon one and a Reikai one. The sections stay open, since a list a reader
+// can scan beats one they have to unfold; only the FAQ, a second way into the same topics, is folded.
 const sidebar = [
-  {
-    items: [
-      rootLink('Download', '/download/'),
-      rootLink('Changelogs', '/changelogs/'),
-      rootLink('Related apps', '/related/'),
-      rootLink('Privacy policy', '/privacy/'),
-    ],
-  },
   {
     text: 'Start here',
     items: [
       { text: 'Getting started', link: '/docs/guides/getting-started' },
       { text: 'Before you upgrade', link: '/docs/before-you-upgrade' },
+      { text: 'About Reikai', link: '/docs/about' },
     ],
   },
   {
     text: 'Library',
-    collapsed: true,
     items: [
       { text: 'Layout', link: '/docs/library-layout' },
       { text: 'Search', link: '/docs/library-search' },
       { text: 'Categories', link: '/docs/guides/categories' },
       { text: 'Merged series', link: '/docs/multi-source' },
+      { text: 'Updates and History', link: '/docs/recents' },
+      { text: 'Smart updates', link: '/docs/faq/updates/smart' },
+      { text: 'Upcoming', link: '/docs/faq/updates/upcoming' },
     ],
   },
   {
     text: 'Sources',
-    collapsed: true,
     items: [
       { text: 'Extensions and plugins', link: '/docs/faq/browse/extensions' },
       { text: 'Feed and saved searches', link: '/docs/feed' },
       { text: 'Opening shared links', link: '/docs/shared-links' },
+      { text: 'Built-in sources', link: '/docs/built-in-sources' },
+      { text: 'Adult sources', link: '/docs/adult-sources' },
       {
         text: 'Local source',
         link: '/docs/guides/local-source/',
         collapsed: true,
         items: [{ text: 'Advanced editing', link: '/docs/guides/local-source/advanced' }],
       },
-      { text: 'Adult sources', link: '/docs/adult-sources' },
       // Installs extension apps without a prompt each time, so it sits with the sources it installs.
       { text: 'Shizuku', link: '/docs/guides/shizuku' },
+      { text: 'Migration', link: '/docs/guides/source-migration' },
     ],
   },
   {
     text: 'Reading',
-    collapsed: true,
     items: [
-      // There is no task guide for the manga reader, so it opens its settings reference, which Reference
-      // lists again beside the novel one.
-      { text: 'Manga reader', link: '/docs/guides/reader-settings' },
-      { text: 'Novel reader', link: '/docs/novel-reader' },
-    ],
-  },
-  { text: 'Updates and History', link: '/docs/recents' },
-  { text: 'Downloads', link: '/docs/faq/downloads' },
-  { text: 'Tracking', link: '/docs/guides/tracking' },
-  { text: 'Recommendations', link: '/docs/related-mangas' },
-  { text: 'Migration', link: '/docs/guides/source-migration' },
-  { text: 'Backups', link: '/docs/guides/backups' },
-  {
-    text: 'Troubleshooting',
-    collapsed: true,
-    items: [
-      { text: 'Overview', link: '/docs/guides/troubleshooting/' },
-      { text: 'Common issues', link: '/docs/guides/troubleshooting/common-issues' },
-      { text: 'Diagnosis', link: '/docs/guides/troubleshooting/diagnosis' },
-      {
-        text: 'Cloudflare',
-        link: '/docs/guides/troubleshooting/#cloudflare',
-        collapsed: true,
-        items: [{ text: 'Bypass proxy', link: '/docs/flaresolverr' }],
-      },
-    ],
-  },
-  {
-    text: 'Reference',
-    collapsed: true,
-    items: [
+      // There is no task guide for the manga reader, so its settings reference stands in for one.
       { text: 'Manga reader settings', link: '/docs/guides/reader-settings' },
+      { text: 'Novel reader', link: '/docs/novel-reader' },
       { text: 'Novel reader settings', link: '/docs/guides/novel-reader-settings' },
-      { text: 'Built-in sources', link: '/docs/built-in-sources' },
+      { text: 'Downloads', link: '/docs/faq/downloads' },
+    ],
+  },
+  {
+    text: 'Tracking',
+    items: [
+      { text: 'Tracking', link: '/docs/guides/tracking' },
+      { text: 'Recommendations', link: '/docs/related-mangas' },
+    ],
+  },
+  {
+    text: 'Data and help',
+    items: [
+      { text: 'Backups', link: '/docs/guides/backups' },
+      { text: 'Storage', link: '/docs/faq/storage' },
+      {
+        text: 'Troubleshooting',
+        link: '/docs/guides/troubleshooting/',
+        collapsed: true,
+        items: [
+          { text: 'Common issues', link: '/docs/guides/troubleshooting/common-issues' },
+          { text: 'Diagnosis', link: '/docs/guides/troubleshooting/diagnosis' },
+        ],
+      },
+      { text: 'Cloudflare bypass proxy', link: '/docs/flaresolverr' },
     ],
   },
   {
     text: 'FAQ',
     collapsed: true,
     items: [
-      { text: 'Reikai', link: '/docs/about' },
       { text: 'General', link: '/docs/faq/general' },
       { text: 'Library', link: '/docs/faq/library' },
-      {
-        text: 'Updates',
-        collapsed: true,
-        items: [
-          { text: 'Smart updates', link: '/docs/faq/updates/smart' },
-          { text: 'Upcoming', link: '/docs/faq/updates/upcoming' },
-        ],
-      },
-      {
-        text: 'Browse',
-        link: '/docs/faq/browse/',
-        collapsed: true,
-        items: [{ text: 'Local source', link: '/docs/faq/browse/local-source' }],
-      },
+      { text: 'Browse', link: '/docs/faq/browse/' },
+      { text: 'Local source', link: '/docs/faq/browse/local-source' },
       { text: 'Reader', link: '/docs/faq/reader' },
       { text: 'Settings', link: '/docs/faq/settings' },
-      { text: 'Storage', link: '/docs/faq/storage' },
     ],
   },
 ]
@@ -267,13 +243,15 @@ export default defineConfig({
 
     nav: [
       {
-        // Mihon's shape: one "Get" entry that opens onto the download page and the changelog,
-        // rather than two top-level items competing for the same intent.
+        // Mihon's shape: one "Get" entry rather than top-level items competing for the same intent. It
+        // also holds the site's other pages, which the docs sidebar leaves out.
         text: 'Get Reikai',
-        activeMatch: '^/(download|changelogs)',
+        activeMatch: '^/(download|changelogs|related|privacy)',
         items: [
           rootLink('Download', '/download/'),
           rootLink('Changelogs', '/changelogs/'),
+          rootLink('Related apps', '/related/'),
+          rootLink('Privacy policy', '/privacy/'),
         ],
       },
       { text: 'Docs', link: '/docs/guides/getting-started', activeMatch: '^/docs/' },
