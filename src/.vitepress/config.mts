@@ -78,6 +78,7 @@ const sidebar = [
       { text: 'Updates and History', link: '/docs/recents' },
       { text: 'Smart updates', link: '/docs/faq/updates/smart' },
       { text: 'Upcoming', link: '/docs/faq/updates/upcoming' },
+      { text: 'Statistics', link: '/docs/statistics' },
     ],
   },
   {
