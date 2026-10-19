@@ -7,7 +7,8 @@ hero:
   text: One library for manga and light novels
   tagline: A free and open source reader for Android, built on Mihon.
   image:
-    src: /home/libraries.webp
+    light: /home/libraries.light.webp
+    dark: /home/libraries.dark.webp
     alt: The Reikai library, showing the manga tab and the novels tab side by side
   actions:
     - theme: brand
