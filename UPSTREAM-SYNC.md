@@ -42,6 +42,7 @@ Newest first. "Base" is the `refs/mihon-website` SHA compared against.
 
 | Base (mihon website) | Date | Taken | Declined |
 |---|---|---|---|
+| `ae9695a` | 2026-10-26 | Nothing. | **Two renovate dependency bumps (mihonapp/website#298, mihonapp/website#299), per the standing policy.** They move pnpm, `@tanstack/vue-query`, the `@mdit` plugin set, the `@typescript-eslint` pair, `eslint`, `markdownlint` and `markdownlint-cli`, none of which this site declares, and patch `markdown-it` and `vue`, which reach it only through VitePress's own lock. Its three devDependencies are untouched. |
 | `ac03fbf` | 2026-10-12 | Nothing. | **A renovate dependency bump (mihonapp/website#297), per the standing policy.** It moves `@tanstack/vue-query`, which this site does not use. |
 | `ae329d6` | 2026-10-12 | Nothing. | **A renovate dependency bump (mihonapp/website#296), per the standing policy on the rows below.** It moves pnpm, `@types/node` and the `@typescript-eslint` pair; none of this site's three devDependencies changes. |
 | `3f772ad` | 2026-10-08 | Nothing. | **A renovate dependency bump (mihonapp/website#294), per the standing policy on the rows below.** It moves pnpm, `@tanstack/vue-query`, `element-plus`, `@types/node`, the `@typescript-eslint` pair, `eslint` and `stylelint`, none of which this site uses; its three devDependencies (`markdown-it-shortcode-tag`, `vitepress`, `vitepress-plugin-tabs`) are untouched. |
