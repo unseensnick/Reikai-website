@@ -243,9 +243,6 @@ html.dark .only-light {
   .VPSidebarItem .item .text { padding-top: 10px !important; padding-bottom: 10px !important; }
 }
 
-/* Older releases are one line each in the changelog list, so the headings sit closer than the docs'. */
-.release-date + h2 { margin-top: 24px; }
-
 /* The nav logo, up from the default 24px. The bar is 64px tall, so the mark was sitting small in
    it; VitePress exposes the size as a variable, so this needs no override of its own component. */
 :root {

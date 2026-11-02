@@ -1,5 +1,5 @@
-// Generates the Changelogs page, the latest release in full above a list of the older ones, and one
-// page per release at /changelogs/<version>, which is where each older release is read and searched.
+// Generates the Changelogs page, the latest release in full above a few changes from each older one,
+// and one page per release at /changelogs/<version>, where each older release is read in full.
 // Stacking them all ran to 136,000px on a phone.
 //
 // This writes real markdown rather than rendering releases in a Vue component, because VitePress
@@ -114,6 +114,44 @@ const notesByTag = new Map(
   ),
 )
 
+const HIGHLIGHTS = 3
+
+// A few changes from one release, taken in turn from each area so a release does not read as three
+// fixes to one screen. Each list is already ordered by importance. Other holds little a reader
+// notices, so it is only used when a release has nothing else. An entry's bold headline stands on
+// its own by the changelog's rule; an older entry with none gives its whole line. Highlights and
+// upgrade notes are not changes, and neither is a list under a bold line, which is a set of steps.
+function highlights(notes) {
+  const areas = []
+  const other = []
+  let total = 0
+  let area = null
+  for (const line of notes.split('\n')) {
+    if (line.startsWith('### ')) {
+      area = /^### (Highlights|Before you upgrade)/.test(line) ? null : line === '### Other' ? other : []
+      if (area && area !== other) areas.push(area)
+    } else if (line.startsWith('**')) {
+      area = null
+    }
+    const entry = line.match(/^[-*] (.+)$/)?.[1]
+    if (!entry || !area) continue
+    total++
+    area.push(entry.match(/^\*\*(.+?)\*\*/)?.[1] ?? entry)
+  }
+  const picked = []
+  const lists = areas.some((list) => list.length) ? areas : [other]
+  for (let turn = 0; picked.length < HIGHLIGHTS && lists.some((list) => list[turn]); turn++) {
+    for (const list of lists) if (list[turn] && picked.length < HIGHLIGHTS) picked.push(list[turn])
+  }
+  return { picked, total }
+}
+
+function summary(notes, version) {
+  const { picked, total } = highlights(notes)
+  const list = picked.map((change) => `- ${change}`).join('\n')
+  return total > picked.length ? `${list}\n\n[See all ${total} changes in ${version}](/changelogs/${version})` : list
+}
+
 const intro = `---
 title: Changelogs
 description: Release history for Reikai.
@@ -136,7 +174,8 @@ const body = releases.length
         const version = release.tag_name.replace(/^v/, '')
         const latest = index === 0 ? ' <Badge type="tip" text="Latest" />' : ''
         const date = formatDate(release.published_at)
-        const notes = index === 0 ? notesByTag.get(release.tag_name) || '_No release notes._' : ''
+        const full = notesByTag.get(release.tag_name) || '_No release notes._'
+        const notes = index === 0 ? full : summary(full, version)
         // No explicit `---` between releases: VitePress already draws a border above every h2, so
         // an <hr> as well renders two rules stacked. The version links to its own page; the heading's
         // anchor is taken from its text, so existing #0-3-2 style links keep working.
