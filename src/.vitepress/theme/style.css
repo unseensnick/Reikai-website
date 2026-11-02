@@ -206,18 +206,6 @@ html.dark .only-light {
   .VPDoc.has-sidebar .container { max-width: 1400px !important; }
   .VPDoc.has-sidebar .content { max-width: 1040px !important; }
   .VPDoc.has-aside .content-container { max-width: 880px !important; }
-
-  /* Changelogs is a set of short entries, so it can take the width as columns. */
-  .rk-changelog .VPDoc.has-sidebar .container,
-  .rk-changelog .VPDoc.has-sidebar .content,
-  .rk-changelog .VPDoc.has-aside .content-container { max-width: none !important; }
-  .rk-changelog .aside { display: none !important; }
-  .rk-changelog .vp-doc li { max-width: 880px; }
-  .rk-releases {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(460px, 1fr));
-    gap: 0 56px;
-  }
 }
 /* 7,680px wide means denser pixels as well as more of them, so this one step is about size. */
 @media (min-width: 3800px) {
@@ -230,7 +218,6 @@ html.dark .only-light {
   .vp-doc h2 { font-size: 28px; line-height: 36px; }
   .VPSidebarItem .text, .VPDocAsideOutline .outline-link { font-size: 16px !important; }
   .VPNavBarMenuLink, .VPNavBarMenuGroup .text { font-size: 16px !important; }
-  .rk-releases { grid-template-columns: repeat(auto-fill, minmax(560px, 1fr)); }
 }
 
 /* A two-column table stays a table on a phone, so long text in it has to wrap. */

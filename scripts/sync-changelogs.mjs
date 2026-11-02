@@ -160,7 +160,6 @@ editLink: false
 prev: false
 next: false
 outline: [2, 2]
-pageClass: rk-changelog
 ---
 
 # Changelogs
@@ -189,10 +188,8 @@ const entries = releases.map((release, index) => {
           .join('\n')
 })
 
-// Each older release is its own block, so a wide screen can lay them out as columns (style.css).
-const older = entries.slice(1).map((entry) => `<section>\n\n${entry}\n\n</section>`).join('\n\n')
 const body = entries.length
-  ? `${entries[0]}\n\n<div class="rk-releases">\n\n${older}\n\n</div>`
+  ? entries.join('\n\n')
   : '\nRelease history could not be loaded. It is always available on GitHub.\n'
 
 await mkdir(DIR, { recursive: true })
