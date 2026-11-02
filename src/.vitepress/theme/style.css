@@ -185,34 +185,30 @@ html.dark .only-light {
   margin: 0 auto;
 }
 
-/* Room for a wide screen to be used. Only from 1680px, because VitePress's own rules from 1440px
-   assume the width has been reached, and a larger value makes their padding negative in between. */
+/* Wide screens anchor to the edges, as Plex does: the sidebar against the left, the page navigator
+   against the right, and the content centred between them, at normal sizes. A block centred as a
+   whole leaves a gap on both sides, however it is sized. From 1680px, because a full-width layout
+   value is only safe once VitePress's own 1440px rules have room. */
 @media (min-width: 1680px) {
-  :root { --vp-layout-max-width: 1680px; }
-  .VPDoc.has-sidebar .container { max-width: 1240px !important; }
-  .VPDoc.has-sidebar .content { max-width: 920px !important; }
-  .VPDoc.has-aside .content-container { max-width: 800px !important; }
+  :root { --vp-layout-max-width: 100vw; }
+  .VPDoc.has-sidebar { padding-left: 32px !important; padding-right: 32px !important; }
+  .VPDoc.has-sidebar .container {
+    position: relative;
+    max-width: none !important;
+    margin: 0 !important;
+    justify-content: center;
+  }
+  .VPDoc.has-sidebar .content { width: 100%; max-width: 880px !important; flex-grow: 0; margin: 0 auto; padding: 0 0 128px; }
+  .VPDoc.has-aside .content-container,
+  .page-narrow .VPDoc .content-container { max-width: none !important; margin: 0 !important; }
+  .VPDoc.has-sidebar .aside { position: absolute; top: 0; right: 0; width: 256px; padding-left: 16px; }
   .vp-doc p,
   .vp-doc li { font-size: 17px; line-height: 28px; }
 }
-
-/* A big monitor shows more rather than the same thing larger, so sizes stay natural here. The sidebar
-   takes the page's own background, which stops the block reading as a strip floating in the dark. */
-@media (min-width: 1680px) {
-  :root { --vp-sidebar-bg-color: var(--vp-c-bg); }
-}
-@media (min-width: 2200px) {
-  :root { --vp-layout-max-width: 2100px; --vp-sidebar-width: 300px; }
-  .VPDoc.has-sidebar .container { max-width: 1400px !important; }
-  .VPDoc.has-sidebar .content { max-width: 1040px !important; }
-  .VPDoc.has-aside .content-container { max-width: 880px !important; }
-}
 /* 7,680px wide means denser pixels as well as more of them, so this one step is about size. */
 @media (min-width: 3800px) {
-  :root { --vp-layout-max-width: 2800px; --vp-sidebar-width: 340px; }
-  .VPDoc.has-sidebar .container { max-width: 1640px !important; }
-  .VPDoc.has-sidebar .content { max-width: 1240px !important; }
-  .VPDoc.has-aside .content-container { max-width: 1040px !important; }
+  :root { --vp-sidebar-width: 340px; }
+  .VPDoc.has-sidebar .content { max-width: 1100px !important; }
   .vp-doc p, .vp-doc li, .vp-doc td, .vp-doc th { font-size: 20px; line-height: 33px; }
   .vp-doc h1 { font-size: 40px; line-height: 48px; }
   .vp-doc h2 { font-size: 28px; line-height: 36px; }
