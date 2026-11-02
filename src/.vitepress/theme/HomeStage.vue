@@ -940,22 +940,20 @@ const boxStyle = ([left, top, width, height]: Box) => ({
   .bar { display: none; }
 }
 
-/* Ultrawide: the hero grows with the docs' size steps rather than sitting small in the middle. */
+/* Wide screens spread the three columns at natural sizes, and the phone takes the extra height. */
 @media (min-width: 2200px) {
-  .stage-grid {
-    zoom: 1.3;
-    max-width: 1560px;
-    min-height: calc((100svh - var(--vp-nav-height)) / 1.3);
-  }
-  .phone { height: calc((100svh - var(--vp-nav-height) - 52px) / 1.3); max-height: 860px; }
+  .stage-grid { max-width: 2000px; gap: 120px; }
+  .headline { font-size: 72px; }
+  .phone { height: min(calc(100svh - var(--vp-nav-height) - 40px), 960px); }
 }
-@media (min-width: 3000px) {
+/* 7,680px wide has denser pixels too, so here the hero does grow a little. */
+@media (min-width: 3800px) {
   .stage-grid {
-    zoom: 1.6;
-    max-width: 1720px;
-    min-height: calc((100svh - var(--vp-nav-height)) / 1.6);
+    zoom: 1.25;
+    max-width: 2200px;
+    min-height: calc((100svh - var(--vp-nav-height)) / 1.25);
   }
-  .phone { height: calc((100svh - var(--vp-nav-height) - 64px) / 1.6); }
+  .phone { height: calc((100svh - var(--vp-nav-height) - 60px) / 1.25); max-height: 1040px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

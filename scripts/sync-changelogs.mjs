@@ -160,6 +160,7 @@ editLink: false
 prev: false
 next: false
 outline: [2, 2]
+pageClass: rk-changelog
 ---
 
 # Changelogs
@@ -168,9 +169,7 @@ Changelogs of all Reikai stable releases, which are also available [on GitHub](h
 Nightly releases can be seen [on GitHub](https://github.com/${NIGHTLY_REPO}/releases).
 `
 
-const body = releases.length
-  ? releases
-      .map((release, index) => {
+const entries = releases.map((release, index) => {
         const version = release.tag_name.replace(/^v/, '')
         const latest = index === 0 ? ' <Badge type="tip" text="Latest" />' : ''
         const date = formatDate(release.published_at)
@@ -188,8 +187,12 @@ const body = releases.length
         ]
           .filter((line) => line !== null)
           .join('\n')
-      })
-      .join('\n\n')
+})
+
+// Each older release is its own block, so a wide screen can lay them out as columns (style.css).
+const older = entries.slice(1).map((entry) => `<section>\n\n${entry}\n\n</section>`).join('\n\n')
+const body = entries.length
+  ? `${entries[0]}\n\n<div class="rk-releases">\n\n${older}\n\n</div>`
   : '\nRelease history could not be loaded. It is always available on GitHub.\n'
 
 await mkdir(DIR, { recursive: true })
