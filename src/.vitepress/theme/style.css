@@ -198,7 +198,7 @@ html.dark .only-light {
     margin: 0 !important;
     justify-content: center;
   }
-  .VPDoc.has-sidebar .content { width: 100%; max-width: 880px !important; flex-grow: 0; margin: 0 auto; padding: 0 0 128px; }
+  .VPDoc.has-sidebar .container > .content { width: 100%; max-width: 880px !important; flex-grow: 0; margin: 0 auto; padding: 0 0 128px; }
   .VPDoc.has-aside .content-container,
   .page-narrow .VPDoc .content-container { max-width: none !important; margin: 0 !important; }
   .VPDoc.has-sidebar .aside { position: absolute; top: 0; right: 0; width: 256px; padding-left: 16px; }
@@ -208,7 +208,7 @@ html.dark .only-light {
 /* 7,680px wide means denser pixels as well as more of them, so this one step is about size. */
 @media (min-width: 3800px) {
   :root { --vp-sidebar-width: 340px; }
-  .VPDoc.has-sidebar .content { max-width: 1100px !important; }
+  .VPDoc.has-sidebar .container > .content { max-width: 1100px !important; }
   .vp-doc p, .vp-doc li, .vp-doc td, .vp-doc th { font-size: 20px; line-height: 33px; }
   .vp-doc h1 { font-size: 40px; line-height: 48px; }
   .vp-doc h2 { font-size: 28px; line-height: 36px; }
