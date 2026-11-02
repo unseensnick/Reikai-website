@@ -196,6 +196,53 @@ html.dark .only-light {
   .vp-doc li { font-size: 17px; line-height: 28px; }
 }
 
+/* Ultrawide screens. Stretching the text would make lines too long to read, so type and columns grow
+   in steps, keeping about the same line length. A layout width of the whole viewport pins the sidebar
+   to the left edge and spreads the nav, where a centred block left a dead band beside the sidebar. */
+@media (min-width: 2200px) {
+  :root { --vp-layout-max-width: 100vw; --vp-sidebar-width: 340px; --vp-nav-logo-height: 38px; }
+  .VPNavBarTitle .title { font-size: 19px; }
+  .DocSearch-Button { transform: scale(1.15); transform-origin: left center; }
+  .vp-doc h4 { font-size: 21px; }
+  .release-date { font-size: 18px; }
+  .page-narrow .VPDoc .content-container { max-width: 960px; }
+  .rk-apps { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+  .rk-app-name { font-size: 19px; }
+  .rk-app-desc { font-size: 17px; }
+  .VPDoc.has-sidebar .container { max-width: 1520px !important; }
+  .VPDoc.has-sidebar .content { max-width: 1120px !important; }
+  .VPDoc.has-aside .content-container { max-width: 960px !important; }
+  .VPDoc .aside { max-width: 320px !important; }
+  .vp-doc p, .vp-doc li, .vp-doc td, .vp-doc th { font-size: 20px; line-height: 33px; }
+  .vp-doc h1 { font-size: 44px; line-height: 52px; }
+  .vp-doc h2 { font-size: 30px; line-height: 40px; }
+  .vp-doc h3 { font-size: 24px; line-height: 32px; }
+  .VPSidebarItem .text, .VPDocAsideOutline .outline-link, .VPDocAsideOutline .outline-title { font-size: 16px !important; line-height: 30px !important; }
+  .VPNavBarMenuLink, .VPNavBarMenuGroup .text, .VPSidebarItem.level-0 .text { font-size: 16px !important; }
+}
+@media (min-width: 3000px) {
+  :root { --vp-sidebar-width: 420px; --vp-nav-logo-height: 46px; }
+  .VPNavBarTitle .title { font-size: 23px; }
+  .DocSearch-Button { transform: scale(1.4); }
+  .vp-doc h4 { font-size: 26px; }
+  .release-date { font-size: 21px; }
+  .page-narrow .VPDoc .content-container { max-width: 1240px; }
+  .rk-apps { grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); }
+  .rk-app-name { font-size: 23px; }
+  .rk-app-desc { font-size: 20px; }
+  .rk-app-icon { width: 60px; height: 60px; }
+  .VPDoc.has-sidebar .container { max-width: 1960px !important; }
+  .VPDoc.has-sidebar .content { max-width: 1460px !important; }
+  .VPDoc.has-aside .content-container { max-width: 1240px !important; }
+  .VPDoc .aside { max-width: 400px !important; }
+  .vp-doc p, .vp-doc li, .vp-doc td, .vp-doc th { font-size: 25px; line-height: 41px; }
+  .vp-doc h1 { font-size: 56px; line-height: 66px; }
+  .vp-doc h2 { font-size: 38px; line-height: 50px; }
+  .vp-doc h3 { font-size: 30px; line-height: 40px; }
+  .VPSidebarItem .text, .VPDocAsideOutline .outline-link, .VPDocAsideOutline .outline-title { font-size: 20px !important; line-height: 38px !important; }
+  .VPNavBarMenuLink, .VPNavBarMenuGroup .text, .VPSidebarItem.level-0 .text { font-size: 19px !important; }
+}
+
 /* A two-column table stays a table on a phone, so long text in it has to wrap. */
 @media (max-width: 640px) {
   .vp-doc td { overflow-wrap: anywhere; }
