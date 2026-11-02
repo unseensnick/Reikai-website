@@ -16,6 +16,7 @@ import { computed, ref } from 'vue'
 // base for you, so this link goes through withBase or it 404s on a project page.
 import { withBase } from 'vitepress'
 import { data as releases } from './release.data'
+import { ABI, FOSS, size, universal, type Flavour } from './release-assets'
 
 const props = withDefaults(defineProps<{ group?: 'primary' | 'other' }>(), { group: 'primary' })
 
@@ -30,7 +31,7 @@ interface Channel {
   /** Card accent. Stable reads as the recommended one, nightly as the one to think about first. */
   tone: 'brand' | 'warn' | 'plain'
   /** Which build of that release the card offers. */
-  flavour: 'standard' | 'foss'
+  flavour: Flavour
   icon: 'mark' | 'nightly' | 'foss'
 }
 
@@ -74,24 +75,6 @@ const channels = computed<Channel[]>(() => {
 /** The notes shown under the Stable card. Nightly's notes are a per-build diff and belong on GitHub. */
 const latest = computed(() => (props.group === 'primary' ? releases.stable : null))
 
-// Identify a build by what it is NOT, rather than by its name. The channels name their files
-// differently, `reikai-v0.3.1.apk` for stable and `reikai-r1535.apk` for nightly, so matching the
-// version shape picked the wrong asset for one of them. Absence of an ABI token is true for both.
-const ABI = /(arm64-v8a|armeabi-v7a|x86_64|x86)/i
-
-// A release ships the FOSS build beside the ordinary one, and it carries no ABI token either, so
-// the rule above matched both and took whichever GitHub happened to list first. That silently
-// served FOSS as the Stable download, which is a different app: it installs alongside rather than
-// over, so moving off it costs a backup and restore. Every card now names the flavour it wants.
-const FOSS = /-foss[-.]/i
-
-function universal(release: Channel['release'], flavour: Channel['flavour']) {
-  if (!release) return null
-  return release.assets.find(
-    a => a.name.endsWith('.apk') && !ABI.test(a.name) && FOSS.test(a.name) === (flavour === 'foss'),
-  ) ?? null
-}
-
 // No per-architecture FOSS builds are published, so that card offers none rather than falling
 // through to the ordinary ones, which would hand out a different app than the card promises.
 function architectures(release: Channel['release'], flavour: Channel['flavour']) {
@@ -103,10 +86,6 @@ function architectures(release: Channel['release'], flavour: Channel['flavour'])
       url: a.browser_download_url,
       size: `${(a.size / 1024 / 1024).toFixed(0)} MB`,
     }))
-}
-
-function size(bytes?: number) {
-  return bytes ? `${(bytes / 1024 / 1024).toFixed(0)} MB` : ''
 }
 
 function released(iso: string | null | undefined) {
