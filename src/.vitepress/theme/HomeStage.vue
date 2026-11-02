@@ -9,7 +9,7 @@
 // Every target is a percentage of the screen, so a re-captured still only moves numbers in SCREENS.
 // The stage takes its colour from the screen on it, as the app does from a series' cover.
 
-import { computed, onBeforeUnmount, onMounted, ref, shallowRef, useTemplateRef } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, shallowRef, useTemplateRef } from 'vue'
 import { withBase } from 'vitepress'
 import { data as releases } from './release.data'
 import { size, universal } from './release-assets'
@@ -31,6 +31,8 @@ interface Target {
   swap?: boolean
   /** The one target worth pointing at on this screen. */
   hint?: boolean
+  /** Said on the screen, for a target that covers all of it and so has nothing to point at. */
+  caption?: string
 }
 
 interface Screen {
@@ -49,6 +51,9 @@ const HISTORY_TAB: Target = { label: 'Open History', box: [39.4, 90, 20, 8], to:
 const BACK: Target = { label: 'Go back', box: [0, 5.6, 13, 5.8] }
 const RESUME = (to: ScreenId): Target =>
   ({ label: 'Resume reading', box: [68.8, 90, 28, 6.4], to, hint: true })
+
+// The reader stills have no chrome, so a visitor needs telling how to leave.
+const LEAVE_READER: Target = { label: 'Leave the reader', box: [0, 0, 100, 100], caption: 'Tap to go back' }
 
 const chips = [
   chip(3.6, 11, 'library-all', 'Show all'),
@@ -103,13 +108,13 @@ const SCREENS: Record<ScreenId, Screen> = {
     title: 'Reading a manga chapter',
     alt: 'A manga page open in the reader',
     tint: [0.012, 280],
-    targets: [{ label: 'Leave the reader', box: [0, 0, 100, 100] }],
+    targets: [LEAVE_READER],
   },
   'reader-novel': {
     title: 'Reading a novel chapter',
     alt: 'A novel chapter open in the same reader, as text',
     tint: [0.025, 275],
-    targets: [{ label: 'Leave the reader', box: [0, 0, 100, 100] }],
+    targets: [LEAVE_READER],
   },
   history: {
     title: 'History',
@@ -205,30 +210,62 @@ const taps = ref(0)
 const showHints = computed(() => taps.value < 4)
 const revealTargets = ref(false)
 
-function show(to: ScreenId, how: typeof motion.value) {
-  motion.value = how
-  screen.value = to
-  if (!stop.value.screens.includes(to)) stop.value = STOPS.find(s => s.screens.includes(to))!
+const stillSrc = (id: ScreenId) => withBase(`/home/demo/${id}.webp`)
+
+// Each promise resolves to its image, which keeps the decoded picture alive for the swap. A failed
+// fetch resolves too, so a missing still shows its alt text rather than freezing the phone.
+const stills = new Map<ScreenId, Promise<HTMLImageElement>>()
+function load(id: ScreenId) {
+  if (!stills.has(id)) {
+    const image = new Image()
+    image.src = stillSrc(id)
+    stills.set(id, image.decode().then(() => image, () => image))
+  }
+  return stills.get(id)!
 }
 
-function follow(target: Target) {
+// Longer than the slide, so a double tap cannot land on a target of the screen it just opened. The
+// reader's covers the whole screen, which is how Resume used to bounce straight back out.
+const SETTLE_MS = 400
+let settledAt = 0
+let latest = 0
+const busy = ref(false)
+
+// The old screen stays until the new one can be painted, so a slow connection never shows a gap.
+async function show(to: ScreenId, how: typeof motion.value, path: ScreenId[], restoreFocus = false) {
+  const ticket = ++latest
+  busy.value = true
+  await load(to)
+  if (ticket !== latest) return
+  busy.value = false
+  settledAt = performance.now() + SETTLE_MS
+  motion.value = how
+  screen.value = to
+  trail.value = path
+  if (!stop.value.screens.includes(to)) stop.value = STOPS.find(s => s.screens.includes(to))!
+  // The button a keyboard user pressed has just gone, which would drop them at the top of the page.
+  if (restoreFocus) {
+    await nextTick()
+    phone.value?.querySelector('button')?.focus()
+  }
+}
+
+function follow(target: Target, event: MouseEvent) {
+  if (performance.now() < settledAt) return
   interacted()
   taps.value++
-  if (!target.to) show(trail.value.pop() ?? 'library-manga', 'pop')
-  else if (target.swap) {
-    trail.value = []
-    show(target.to, 'fade')
-  } else {
-    trail.value.push(screen.value)
-    show(target.to, 'push')
-  }
+  const byKeyboard = event.detail === 0
+  if (!target.to) show(trail.value.at(-1) ?? 'library-manga', 'pop', trail.value.slice(0, -1), byKeyboard)
+  else if (target.swap) show(target.to, 'fade', [], byKeyboard)
+  else show(target.to, 'push', [...trail.value, screen.value], byKeyboard)
 }
 
 function openStop(next: Stop, to = next.screens[0]) {
   interacted()
   stop.value = next
-  trail.value = [...(next.trail[to] ?? [])]
-  if (to !== screen.value) show(to, 'fade')
+  const path = [...(next.trail[to] ?? [])]
+  if (to === screen.value) trail.value = path
+  else show(to, 'fade', path)
   // Under a stacked layout the phone can be above the fold by the time a stop is picked.
   if (matchMedia('(max-width: 719px)').matches) phone.value?.scrollIntoView({ block: 'start', behavior: 'smooth' })
 }
@@ -287,7 +324,7 @@ onMounted(() => {
 
   // Fetched once the page has settled, so the first tap does not land on an empty screen.
   setTimeout(() => {
-    for (const id of Object.keys(SCREENS)) new Image().src = withBase(`/home/demo/${id}.webp`)
+    for (const id of Object.keys(SCREENS) as ScreenId[]) load(id)
   }, 1200)
 
   if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
@@ -295,7 +332,7 @@ onMounted(() => {
       ghost.value = true
       ghostTimer = setTimeout(() => {
         ghost.value = false
-        show('library-novels', 'fade')
+        show('library-novels', 'fade', [])
       }, 700)
     }, 2200)
   }
@@ -357,28 +394,35 @@ const boxStyle = ([left, top, width, height]: Box) => ({
             <img
               :key="screen"
               class="still"
-              :src="withBase(`/home/demo/${screen}.webp`)"
+              :src="stillSrc(screen)"
               :alt="current.alt"
               width="640"
               height="1425"
+              decoding="sync"
+              fetchpriority="high"
             >
           </Transition>
 
-          <div v-if="ring" :key="`ring-${screen}`" class="ring" :style="boxStyle(ring)" />
+          <Transition name="ring">
+            <div v-if="ring" :key="`ring-${screen}`" class="ring" :style="boxStyle(ring)" />
+          </Transition>
 
           <button
             v-for="target in current.targets"
             :key="`${screen}-${target.label}`"
             type="button"
             class="target"
+            :class="{ fill: target.caption }"
             :style="boxStyle(target.box)"
             :aria-label="target.label"
-            @click="follow(target)"
+            @click="follow(target, $event)"
           >
             <span v-if="target.hint && showHints && !ghost" class="hint" />
+            <span v-if="target.caption" class="caption">{{ target.caption }}</span>
           </button>
 
           <span v-if="ghost" class="ghost-tap" aria-hidden="true" />
+          <span v-if="busy" class="spinner" aria-hidden="true" />
         </div>
         <p class="visually-hidden" aria-live="polite">Now showing: {{ current.title }}</p>
       </div>
@@ -554,25 +598,31 @@ const boxStyle = ([left, top, width, height]: Box) => ({
   overflow: hidden;
   border-radius: 28px;
   background: oklch(0.27 0.02 262);
-  cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
+/* Transparent so a first load does not show the alt text; a screen reader still gets it. */
 .still {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
+  color: transparent;
 }
+.target, .ring, .ghost-tap, .spinner { z-index: 3; }
 
 .target {
   position: absolute;
   padding: 0;
   background: none;
   border-radius: 8px;
+  cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   transition: background-color 0.3s, box-shadow 0.3s;
 }
-.target:hover { background-color: oklch(0.95 0.01 262 / 0.1); }
+/* Not on the reader, whose target is the whole screen, and not on touch, where hover sticks. */
+@media (hover: hover) {
+  .target:not(.fill):hover { background-color: oklch(0.95 0.01 262 / 0.1); }
+}
 .target:focus-visible { outline: 2px solid var(--vp-c-brand-1); outline-offset: -2px; }
 .phone[data-reveal] .target {
   background-color: oklch(0.72 0.1 275 / 0.28);
@@ -588,7 +638,8 @@ const boxStyle = ([left, top, width, height]: Box) => ({
   border-radius: 50%;
   background: oklch(0.96 0.02 275 / 0.92);
   box-shadow: 0 1px 6px oklch(0.15 0.02 275 / 0.7);
-  animation: hint 2s var(--ease) infinite;
+  /* Held back until the screen it sits on has finished arriving. */
+  animation: appear 0.24s ease-out 0.36s both, hint 2s var(--ease) 0.6s infinite;
   pointer-events: none;
 }
 .hint::after {
@@ -599,11 +650,45 @@ const boxStyle = ([left, top, width, height]: Box) => ({
   border: 2px solid oklch(0.96 0.02 275 / 0.9);
   animation: hint-ring 2s var(--ease) infinite;
 }
+@keyframes appear { from { opacity: 0; } }
 @keyframes hint { 50% { transform: scale(0.82); } }
 @keyframes hint-ring {
   from { transform: scale(1); opacity: 0.9; }
   to { transform: scale(2.6); opacity: 0; }
 }
+
+.caption {
+  position: absolute;
+  left: 50%;
+  bottom: 6%;
+  translate: -50% 0;
+  padding: 7px 13px;
+  border-radius: 8px;
+  background: oklch(0.93 0.012 275);
+  color: oklch(0.22 0.015 275);
+  box-shadow: 0 2px 10px oklch(0.1 0.01 275 / 0.5);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.2;
+  white-space: nowrap;
+  animation: appear 0.3s ease-out 0.4s both;
+}
+
+/* Only reached when a screen is slow to arrive: the delay keeps a fast one from flashing it. */
+.spinner {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 32px;
+  height: 32px;
+  margin: -16px 0 0 -16px;
+  border: 3px solid oklch(0.96 0.02 275 / 0.25);
+  border-top-color: oklch(0.96 0.02 275 / 0.95);
+  border-radius: 50%;
+  animation: appear 0.2s ease-out 0.25s both, spin 0.8s linear infinite;
+  pointer-events: none;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
 
 .ghost-tap {
   position: absolute;
@@ -630,20 +715,26 @@ const boxStyle = ([left, top, width, height]: Box) => ({
   box-shadow:
     inset 0 0 0 2px oklch(0.84 0.09 275),
     0 0 0 999px oklch(0.12 0.01 275 / 0.34);
-  animation: ring-in 0.45s var(--ease) both;
   pointer-events: none;
 }
-@keyframes ring-in { from { opacity: 0; } }
+.ring-enter-active { transition: opacity 0.4s var(--ease) 0.2s; }
+.ring-leave-active { transition: opacity 0.12s ease-out; }
+.ring-enter-from, .ring-leave-to { opacity: 0; }
 
-/* Moving between screens, in the app's own vocabulary: a chip or tab fades, opening something
-   pushes it in from the side, and going back returns it. */
-.fade-enter-active, .fade-leave-active { transition: opacity 0.26s ease-out; }
+/* Moving between screens the way the app does. Two screens must never show through each other,
+   since two pages of text at once reads as one garbled page: what opens slides in opaque over what
+   it covers, and a tab fades out to the bare surface before the next one fades in. */
+.fade-leave-active { transition: opacity 0.09s ease-in; }
+.fade-enter-active { transition: opacity 0.21s ease-out 0.09s; }
 .fade-enter-from, .fade-leave-to { opacity: 0; }
-.push-enter-active, .pop-enter-active { transition: transform 0.36s var(--ease), opacity 0.2s ease-out; }
-.push-leave-active, .pop-leave-active { transition: opacity 0.2s ease-out; }
-.push-enter-from { transform: translateX(14%); opacity: 0; }
-.pop-enter-from { transform: translateX(-10%); opacity: 0; }
-.push-leave-to, .pop-leave-to { opacity: 0; }
+.push-enter-active, .push-leave-active,
+.pop-enter-active, .pop-leave-active { transition: transform 0.36s var(--ease); }
+.push-enter-active, .pop-leave-active {
+  z-index: 2;
+  box-shadow: 0 0 28px oklch(0.1 0.01 262 / 0.55);
+}
+.push-enter-from, .pop-leave-to { transform: translateX(100%); }
+.push-leave-to, .pop-enter-from { transform: translateX(-22%); }
 
 /* The tour */
 .tour { grid-area: tour; }
@@ -778,10 +869,11 @@ const boxStyle = ([left, top, width, height]: Box) => ({
 
 @media (prefers-reduced-motion: reduce) {
   .stage, .phone, .stop-fold { transition: none; }
-  .hint, .hint::after, .ring { animation: none; }
+  .hint, .hint::after, .caption, .spinner { animation: none; }
   .fade-enter-active, .fade-leave-active,
   .push-enter-active, .push-leave-active,
   .pop-enter-active, .pop-leave-active,
+  .ring-enter-active, .ring-leave-active,
   .bar-enter-active, .bar-leave-active { transition: none; }
 }
 </style>
