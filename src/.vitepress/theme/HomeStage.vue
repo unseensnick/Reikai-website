@@ -35,8 +35,12 @@ interface Target {
   caption?: string
 }
 
+type Kind = 'all' | 'manga' | 'novels'
+
 interface Screen {
   title: string
+  /** The content type on the screen. History shows them together, so it has none. */
+  kind?: Kind
   alt: string
   /** The stage colour, as OKLCH chroma and hue. */
   tint: [chroma: number, hue: number]
@@ -63,16 +67,18 @@ const chips = [
 
 const SCREENS: Record<ScreenId, Screen> = {
   'library-manga': {
+    kind: 'manga',
     title: 'Library, manga',
     alt: 'The Reikai library showing manga covers grouped into categories',
     tint: [0.045, 300],
     targets: [
-      ...chips.map(c => (c.to === 'library-novels' ? { ...c, hint: true } : c)),
-      { label: 'Open The Eminence in Shadow', box: [34.8, 24.5, 30, 24.2], to: 'detail-manga' },
+      ...chips,
+      { label: 'Open The Eminence in Shadow', box: [34.8, 24.5, 30, 24.2], to: 'detail-manga', hint: true },
       HISTORY_TAB,
     ],
   },
   'library-novels': {
+    kind: 'novels',
     title: 'Library, novels',
     alt: 'The same library showing light novels, in the same layout as the manga',
     tint: [0.04, 220],
@@ -83,6 +89,7 @@ const SCREENS: Record<ScreenId, Screen> = {
     ],
   },
   'library-all': {
+    kind: 'all',
     title: 'Library, manga and novels together',
     alt: 'The library showing manga and novels mixed in one list',
     tint: [0.035, 260],
@@ -93,24 +100,28 @@ const SCREENS: Record<ScreenId, Screen> = {
     ],
   },
   'detail-manga': {
+    kind: 'manga',
     title: 'The Eminence in Shadow',
     alt: 'A manga page with its sources listed as chips, a row of related titles and the chapter list',
     tint: [0.055, 22],
     targets: [BACK, RESUME('reader-manga')],
   },
   'detail-novel': {
+    kind: 'novels',
     title: 'Shadow Slave',
     alt: 'A novel page with three sources listed as chips above one chapter list',
     tint: [0.02, 240],
     targets: [BACK, RESUME('reader-novel')],
   },
   'reader-manga': {
+    kind: 'manga',
     title: 'Reading a manga chapter',
     alt: 'A manga page open in the reader',
     tint: [0.012, 280],
     targets: [LEAVE_READER],
   },
   'reader-novel': {
+    kind: 'novels',
     title: 'Reading a novel chapter',
     alt: 'A novel chapter open in the same reader, as text',
     tint: [0.025, 275],
@@ -128,76 +139,111 @@ const SCREENS: Record<ScreenId, Screen> = {
   },
 }
 
+interface Link {
+  text: string
+  href: string
+}
+
+// A stop says what it covers per content type, and a type it does not cover has no entry. The tour
+// hides the stop for that type rather than pointing at something the app does not have.
 interface Stop {
   id: string
   title: string
-  body: string
-  link: { text: string; href: string }
-  screens: ScreenId[]
+  body: Partial<Record<Kind, string>>
+  link: { all: Link } & Partial<Record<Kind, Link>>
+  screens: Partial<Record<Kind, ScreenId>>
   /** What Back returns through when the tour jumped straight to this stop. */
   trail: Partial<Record<ScreenId, ScreenId[]>>
   /** The part of a screen the stop is about. */
   rings?: Partial<Record<ScreenId, Box>>
-  /** Screens the stop can switch between, when it covers both content types. */
-  flip?: { label: string; to: ScreenId }[]
 }
 
+const KINDS: { kind: Kind; label: string }[] = [
+  { kind: 'all', label: 'All' },
+  { kind: 'manga', label: 'Manga' },
+  { kind: 'novels', label: 'Novels' },
+]
+const LIBRARY: Record<Kind, ScreenId> = { all: 'library-all', manga: 'library-manga', novels: 'library-novels' }
 const SOURCE_CHIPS: Box = [2.6, 50, 90, 4.4]
 
 const STOPS: Stop[] = [
   {
     id: 'library',
-    title: 'Novels sit in the same library',
-    body: 'Manga and novels share one library screen, with a chip to show either type or both. Categories, search and tracking work for both.',
-    link: { text: 'Get started', href: '/docs/guides/getting-started' },
-    screens: ['library-manga', 'library-novels', 'library-all'],
+    title: 'Manga and novels in one library',
+    body: {
+      all: 'Manga and novels share one library screen, and a chip shows either type or everything together. Categories, search and tracking work the same for each.',
+      manga: 'Your manga, in the categories you set up, with search, tracking and updates. The chip keeps novels out of the way until you want them.',
+      novels: 'Light novels get the same library as manga, with the same categories, search and tracking. The chip keeps manga out of the way until you want it.',
+    },
+    link: { all: { text: 'Get started', href: '/docs/guides/getting-started' } },
+    screens: LIBRARY,
     trail: {},
   },
   {
     id: 'sources',
     title: 'One series, however many sources',
-    body: 'A novel followed on two sites, or a manga on four, can be one card with a source switcher. Reikai offers to group a same-titled series as you add it, and you can merge and split by hand.',
-    link: { text: 'How grouping works', href: '/docs/multi-source' },
-    screens: ['detail-novel', 'detail-manga'],
+    body: {
+      all: 'A series followed on several sites can be one card with a source switcher. Reikai offers to group a same-titled series as you add it, and you can merge and split by hand.',
+      manga: 'A manga on four sites can be one card with a source switcher and one chapter list. Reikai offers to group a same-titled series as you add it, and you can merge and split by hand.',
+      novels: 'A novel on three sites can be one card with a source switcher and one chapter list. Reikai offers to group a same-titled series as you add it, and you can merge and split by hand.',
+    },
+    link: { all: { text: 'How grouping works', href: '/docs/multi-source' } },
+    screens: { all: 'detail-manga', manga: 'detail-manga', novels: 'detail-novel' },
     trail: { 'detail-novel': ['library-novels'], 'detail-manga': ['library-manga'] },
     rings: { 'detail-novel': SOURCE_CHIPS, 'detail-manga': [2.6, 50, 63, 4.4] },
-    flip: [{ label: 'Novel', to: 'detail-novel' }, { label: 'Manga', to: 'detail-manga' }],
   },
   {
     id: 'suggestions',
     title: 'Suggestions ranked by what you read',
-    body: 'By default, every manga carries a row of similar titles. Let Reikai pull your tracker library and it reorders that row toward the genres you have tracked.',
-    link: { text: 'How the taste profile works', href: '/docs/related-mangas#your-taste-profile' },
-    screens: ['detail-manga'],
+    body: {
+      all: 'By default, every manga carries a row of similar titles. Let Reikai pull your tracker library and it reorders that row toward the genres you have tracked. Novels have no equivalent yet.',
+      manga: 'By default, every manga carries a row of similar titles. Let Reikai pull your tracker library and it reorders that row toward the genres you have tracked.',
+    },
+    link: { all: { text: 'How the taste profile works', href: '/docs/related-mangas#your-taste-profile' } },
+    screens: { all: 'detail-manga', manga: 'detail-manga' },
     trail: { 'detail-manga': ['library-manga'] },
     rings: { 'detail-manga': [1.4, 55.4, 97.2, 28.4] },
   },
   {
     id: 'reader',
     title: 'One reader for pictures and prose',
-    body: 'Novels open in the same reader as manga, with text settings of their own.',
-    link: { text: 'Read about the novel reader', href: '/docs/novel-reader' },
-    screens: ['reader-novel', 'reader-manga'],
+    body: {
+      all: 'Manga and novels open in the same reader, each with settings of its own.',
+      manga: 'Read manga paged or as a long strip, with the settings you know from Mihon.',
+      novels: 'Novels open in the same reader as manga, drawn as text. Scroll or turn pages, have it read aloud, and pick your own fonts.',
+    },
+    link: {
+      all: { text: 'Manga reader settings', href: '/docs/guides/reader-settings' },
+      novels: { text: 'Read about the novel reader', href: '/docs/novel-reader' },
+    },
+    screens: { all: 'reader-manga', manga: 'reader-manga', novels: 'reader-novel' },
     trail: {
       'reader-novel': ['library-novels', 'detail-novel'],
       'reader-manga': ['library-manga', 'detail-manga'],
     },
-    flip: [{ label: 'Novel', to: 'reader-novel' }, { label: 'Manga', to: 'reader-manga' }],
   },
   {
     id: 'history',
     title: 'Everything you read, in one history',
-    body: 'Manga and light novels sit together in History and Updates, with chips to narrow them.',
-    link: { text: 'How Recents works', href: '/docs/recents' },
-    screens: ['history'],
+    body: {
+      all: 'Manga and light novels sit together in History and Updates, with chips to narrow them.',
+      manga: 'History and Updates list manga and novels together, and a chip narrows either one to manga.',
+      novels: 'History and Updates list manga and novels together, and a chip narrows either one to novels.',
+    },
+    link: { all: { text: 'How Recents works', href: '/docs/recents' } },
+    screens: { all: 'history', manga: 'history', novels: 'history' },
     trail: {},
   },
 ]
 
-const screen = ref<ScreenId>('library-manga')
+const inStop = (item: Stop, id: ScreenId) => Object.values(item.screens).includes(id)
+
+const screen = ref<ScreenId>('library-all')
+const kind = ref<Kind>('all')
 const trail = ref<ScreenId[]>([])
 const stop = shallowRef(STOPS[0])
 const motion = ref<'fade' | 'push' | 'pop'>('fade')
+const stops = computed(() => STOPS.filter(item => item.screens[kind.value]))
 
 const current = computed(() => SCREENS[screen.value])
 const ring = computed(() => stop.value.rings?.[screen.value])
@@ -242,7 +288,11 @@ async function show(to: ScreenId, how: typeof motion.value, path: ScreenId[], re
   motion.value = how
   screen.value = to
   trail.value = path
-  if (!stop.value.screens.includes(to)) stop.value = STOPS.find(s => s.screens.includes(to))!
+  // A library chip always sets the type. Elsewhere All stays All, since a series has to be one or the
+  // other and the tour's All copy covers it.
+  const onScreen = SCREENS[to].kind
+  if (onScreen && (to === LIBRARY[onScreen] || kind.value !== 'all')) kind.value = onScreen
+  if (!inStop(stop.value, to)) stop.value = STOPS.find(item => inStop(item, to))!
   // The button a keyboard user pressed has just gone, which would drop them at the top of the page.
   if (restoreFocus) {
     await nextTick()
@@ -255,15 +305,22 @@ function follow(target: Target, event: MouseEvent) {
   interacted()
   taps.value++
   const byKeyboard = event.detail === 0
-  if (!target.to) show(trail.value.at(-1) ?? 'library-manga', 'pop', trail.value.slice(0, -1), byKeyboard)
+  if (!target.to) show(trail.value.at(-1) ?? LIBRARY[kind.value], 'pop', trail.value.slice(0, -1), byKeyboard)
   else if (target.swap) show(target.to, 'fade', [], byKeyboard)
   else show(target.to, 'push', [...trail.value, screen.value], byKeyboard)
 }
 
-function openStop(next: Stop, to = next.screens[0]) {
+function pickKind(next: Kind) {
+  kind.value = next
+  const open = stop.value.screens[next] ? stop.value : STOPS[0]
+  // All has no screen of its own past the library, so a series already open stays open.
+  openStop(open, next === 'all' && inStop(open, screen.value) ? screen.value : open.screens[next]!)
+}
+
+function openStop(next: Stop, to = next.screens[kind.value]!) {
   interacted()
   stop.value = next
-  const path = [...(next.trail[to] ?? [])]
+  const path = (next.trail[to] ?? []).map(id => (SCREENS[id].kind && id.startsWith('library') ? LIBRARY[kind.value] : id))
   if (to === screen.value) trail.value = path
   else show(to, 'fade', path)
   // Under a stacked layout the phone can be above the fold by the time a stop is picked.
@@ -281,12 +338,35 @@ function missed(event: MouseEvent) {
 }
 
 // A still picture of a phone looks like every other screenshot, so the first thing the page does
-// is tap it, once. Nothing moves again unless the visitor moves it.
-const ghost = ref(false)
+// is tap each chip once, showing the three views and the tour following them. Nothing moves again
+// unless the visitor moves it.
+const GHOST_TAPS: { left: number; to: ScreenId }[] = [
+  { left: 24.85, to: 'library-manga' },
+  { left: 43.7, to: 'library-novels' },
+  { left: 9.1, to: 'library-all' },
+]
+const ghostLeft = ref<number | null>(null)
+const touring = ref(false)
 let ghostTimer: ReturnType<typeof setTimeout>
 function interacted() {
   clearTimeout(ghostTimer)
-  ghost.value = false
+  ghostLeft.value = null
+  touring.value = false
+}
+
+function ghostTap(index: number) {
+  const tap = GHOST_TAPS[index]
+  if (!tap) {
+    touring.value = false
+    return
+  }
+  touring.value = true
+  ghostLeft.value = tap.left
+  ghostTimer = setTimeout(() => {
+    ghostLeft.value = null
+    show(tap.to, 'fade', [])
+    ghostTimer = setTimeout(() => ghostTap(index + 1), 800)
+  }, 700)
 }
 
 const phone = useTemplateRef<HTMLElement>('phone')
@@ -328,13 +408,7 @@ onMounted(() => {
   }, 1200)
 
   if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    ghostTimer = setTimeout(() => {
-      ghost.value = true
-      ghostTimer = setTimeout(() => {
-        ghost.value = false
-        show('library-novels', 'fade', [])
-      }, 700)
-    }, 2200)
+    ghostTimer = setTimeout(() => ghostTap(0), 1800)
   }
 })
 
@@ -417,11 +491,11 @@ const boxStyle = ([left, top, width, height]: Box) => ({
             :aria-label="target.label"
             @click="follow(target, $event)"
           >
-            <span v-if="target.hint && showHints && !ghost" class="hint" />
+            <span v-if="target.hint && showHints && !touring" class="hint" />
             <span v-if="target.caption" class="caption">{{ target.caption }}</span>
           </button>
 
-          <span v-if="ghost" class="ghost-tap" aria-hidden="true" />
+          <span v-if="ghostLeft !== null" class="ghost-tap" :style="{ left: `${ghostLeft}%` }" aria-hidden="true" />
           <span v-if="busy" class="spinner" aria-hidden="true" />
         </div>
         <p class="visually-hidden" aria-live="polite">Now showing: {{ current.title }}</p>
@@ -430,9 +504,20 @@ const boxStyle = ([left, top, width, height]: Box) => ({
       <div class="tour">
         <h2 class="tour-title">Try it before you install</h2>
         <p class="tour-lead">Those are the app's real screens. Tap the phone, or jump to a stop.</p>
+        <div class="flip" role="group" aria-label="Content type">
+          <button
+            v-for="option in KINDS"
+            :key="option.kind"
+            type="button"
+            :aria-pressed="kind === option.kind"
+            @click="pickKind(option.kind)"
+          >
+            {{ option.label }}
+          </button>
+        </div>
 
         <ol class="stops">
-          <li v-for="item in STOPS" :key="item.id" class="stop" :class="{ open: item === stop }">
+          <li v-for="item in stops" :key="item.id" class="stop" :class="{ open: item === stop }">
             <button
               type="button"
               class="stop-head"
@@ -443,19 +528,8 @@ const boxStyle = ([left, top, width, height]: Box) => ({
             </button>
             <div class="stop-fold">
               <div class="stop-body">
-                <p>{{ item.body }}</p>
-                <div v-if="item.flip" class="flip" role="group" aria-label="Content type">
-                  <button
-                    v-for="side in item.flip"
-                    :key="side.to"
-                    type="button"
-                    :aria-pressed="screen === side.to"
-                    @click="openStop(item, side.to)"
-                  >
-                    {{ side.label }}
-                  </button>
-                </div>
-                <a :href="withBase(item.link.href)">{{ item.link.text }}</a>
+                <p>{{ item.body[kind] }}</p>
+                <a :href="withBase((item.link[kind] ?? item.link.all).href)">{{ (item.link[kind] ?? item.link.all).text }}</a>
               </div>
             </div>
           </li>
@@ -692,7 +766,6 @@ const boxStyle = ([left, top, width, height]: Box) => ({
 
 .ghost-tap {
   position: absolute;
-  left: 43.7%;
   top: 14.5%;
   width: 44px;
   height: 44px;
@@ -790,7 +863,7 @@ const boxStyle = ([left, top, width, height]: Box) => ({
 .stop-body p { margin-bottom: 8px; }
 .stop-body a { display: inline-block; padding: 4px 0 14px; font-weight: 500; font-size: 14px; }
 
-.flip { display: flex; gap: 6px; margin: 2px 0 8px; }
+.flip { display: flex; gap: 6px; margin-top: 14px; }
 .flip button {
   min-height: 36px;
   padding: 0 14px;
