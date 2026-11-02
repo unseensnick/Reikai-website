@@ -106,25 +106,18 @@ html.dark .only-light {
   margin-right: 6px;
 }
 
-/* The hero holds two phones rather than one, so it needs more room than VitePress's default 320px
-   or each device ends up too small to read. Transparent PNG behind it, so one image serves both
-   themes. */
-:root {
-  --vp-home-hero-image-background-image: none;
-  --vp-home-hero-image-filter: none;
+/* The home page's notes, under the stage: one reading column, set closer than the docs because each
+   is a single short paragraph. */
+.rk-home-notes {
+  max-width: 680px;
+  margin: 56px auto 0;
 }
-.VPHero .image-container { width: auto; height: auto; }
-/* The space after the name in the hero heading: text for search engines, no width on screen. */
-.VPHero .hero-gap { font-size: 0; }
-.VPHero .image-src {
-  max-width: 100%;
-  max-height: 100%;
-  position: static;
-  transform: none;
+.rk-home-notes h2 {
+  margin: 40px 0 12px;
+  padding-top: 0;
+  border-top: 0;
 }
-@media (min-width: 960px) {
-  .VPHero .image-src { max-width: 420px; }
-}
+.rk-home-notes h2:first-child { margin-top: 0; }
 
 /* Footer separator between the licence and privacy links, matching Mihon's. */
 .VPFooter .divider {
@@ -190,6 +183,84 @@ html.dark .only-light {
 .page-narrow .VPDoc .content-container {
   max-width: 860px;
   margin: 0 auto;
+}
+
+/* Wide screens anchor to the edges, as Plex does: the sidebar against the left, the page navigator
+   against the right, and the content centred between them, at normal sizes. A block centred as a
+   whole leaves a gap on both sides, however it is sized. From 1680px, because a full-width layout
+   value is only safe once VitePress's own 1440px rules have room. */
+@media (min-width: 1680px) {
+  :root { --vp-layout-max-width: 100vw; }
+  .VPDoc.has-sidebar { padding-left: 32px !important; padding-right: 32px !important; }
+  .VPDoc.has-sidebar .container {
+    position: relative;
+    max-width: none !important;
+    margin: 0 !important;
+    justify-content: center;
+  }
+  .VPDoc.has-sidebar .container > .content { width: 100%; max-width: 880px !important; flex-grow: 0; margin: 0 auto; padding: 0 0 128px; }
+  .VPDoc.has-aside .content-container,
+  .page-narrow .VPDoc .content-container { max-width: none !important; margin: 0 !important; }
+  .VPDoc.has-sidebar .aside { position: absolute; top: 0; right: 0; width: 256px; padding-left: 16px; }
+  .vp-doc p,
+  .vp-doc li { font-size: 17px; line-height: 28px; }
+}
+/* 7,680px wide means denser pixels as well as more of them, so this one step is about size. */
+@media (min-width: 3800px) {
+  :root { --vp-sidebar-width: 340px; }
+  .VPDoc.has-sidebar .container > .content { max-width: 1100px !important; }
+  .vp-doc p, .vp-doc li, .vp-doc td, .vp-doc th { font-size: 20px; line-height: 33px; }
+  .vp-doc h1 { font-size: 40px; line-height: 48px; }
+  .vp-doc h2 { font-size: 28px; line-height: 36px; }
+  .VPSidebarItem .text, .VPDocAsideOutline .outline-link { font-size: 16px !important; }
+  .VPNavBarMenuLink, .VPNavBarMenuGroup .text { font-size: 16px !important; }
+}
+
+/* A two-column table stays a table on a phone, so long text in it has to wrap. */
+@media (max-width: 640px) {
+  .vp-doc td { overflow-wrap: anywhere; }
+  .vp-doc td code { white-space: normal; }
+}
+
+/* On a phone a wide table stacks: each row a block, each cell labelled with its column's name, which
+   the stacking_tables markdown rule writes into data-label. */
+@media (max-width: 640px) {
+  .vp-doc table:has(td[data-label]) { display: block; border: 0; }
+  .vp-doc table:has(td[data-label]) thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+  .vp-doc table:has(td[data-label]) tbody { display: block; }
+  .vp-doc table:has(td[data-label]) tr {
+    display: block;
+    margin-bottom: 12px;
+    padding: 6px 12px;
+    border: 1px solid var(--vp-c-divider);
+    border-radius: 10px;
+    background: var(--vp-c-bg-soft);
+  }
+  .vp-doc table:has(td[data-label]) td {
+    display: block;
+    padding: 6px 0;
+    border: 0;
+    background: none;
+    overflow-wrap: anywhere;
+  }
+  .vp-doc table:has(td[data-label]) td[data-label]:not([data-label=''])::before {
+    content: attr(data-label);
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--vp-c-text-2);
+  }
+}
+
+/* The docs menu opens as a drawer below this width, where each row is a thumb's target. */
+@media (max-width: 959px) {
+  .VPSidebarItem .item .text { padding-top: 10px !important; padding-bottom: 10px !important; }
 }
 
 /* The nav logo, up from the default 24px. The bar is 64px tall, so the mark was sitting small in

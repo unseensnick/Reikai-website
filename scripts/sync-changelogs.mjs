@@ -1,5 +1,6 @@
-// Generates the Changelogs page, every stable release stacked newest first, and one page per release
-// at /changelogs/<version> so a single release can be linked to.
+// Generates the Changelogs page, the latest release in full above a few changes from each older one,
+// and one page per release at /changelogs/<version>, where each older release is read in full.
+// Stacking them all ran to 136,000px on a phone.
 //
 // This writes real markdown rather than rendering releases in a Vue component, because VitePress
 // builds the "On this page" outline, the heading anchors and the local search index from the
@@ -113,6 +114,44 @@ const notesByTag = new Map(
   ),
 )
 
+const HIGHLIGHTS = 3
+
+// A few changes from one release, taken in turn from each area so a release does not read as three
+// fixes to one screen. Each list is already ordered by importance. Other holds little a reader
+// notices, so it is only used when a release has nothing else. An entry's bold headline stands on
+// its own by the changelog's rule; an older entry with none gives its whole line. Highlights and
+// upgrade notes are not changes, and neither is a list under a bold line, which is a set of steps.
+function highlights(notes) {
+  const areas = []
+  const other = []
+  let total = 0
+  let area = null
+  for (const line of notes.split('\n')) {
+    if (line.startsWith('### ')) {
+      area = /^### (Highlights|Before you upgrade)/.test(line) ? null : line === '### Other' ? other : []
+      if (area && area !== other) areas.push(area)
+    } else if (line.startsWith('**')) {
+      area = null
+    }
+    const entry = line.match(/^[-*] (.+)$/)?.[1]
+    if (!entry || !area) continue
+    total++
+    area.push(entry.match(/^\*\*(.+?)\*\*/)?.[1] ?? entry)
+  }
+  const picked = []
+  const lists = areas.some((list) => list.length) ? areas : [other]
+  for (let turn = 0; picked.length < HIGHLIGHTS && lists.some((list) => list[turn]); turn++) {
+    for (const list of lists) if (list[turn] && picked.length < HIGHLIGHTS) picked.push(list[turn])
+  }
+  return { picked, total }
+}
+
+function summary(notes, version) {
+  const { picked, total } = highlights(notes)
+  const list = picked.map((change) => `- ${change}`).join('\n')
+  return total > picked.length ? `${list}\n\n[See all ${total} changes in ${version}](/changelogs/${version})` : list
+}
+
 const intro = `---
 title: Changelogs
 description: Release history for Reikai.
@@ -129,13 +168,12 @@ Changelogs of all Reikai stable releases, which are also available [on GitHub](h
 Nightly releases can be seen [on GitHub](https://github.com/${NIGHTLY_REPO}/releases).
 `
 
-const body = releases.length
-  ? releases
-      .map((release, index) => {
+const entries = releases.map((release, index) => {
         const version = release.tag_name.replace(/^v/, '')
         const latest = index === 0 ? ' <Badge type="tip" text="Latest" />' : ''
         const date = formatDate(release.published_at)
-        const notes = notesByTag.get(release.tag_name)
+        const full = notesByTag.get(release.tag_name) || '_No release notes._'
+        const notes = index === 0 ? full : summary(full, version)
         // No explicit `---` between releases: VitePress already draws a border above every h2, so
         // an <hr> as well renders two rules stacked. The version links to its own page; the heading's
         // anchor is taken from its text, so existing #0-3-2 style links keep working.
@@ -144,12 +182,14 @@ const body = releases.length
           '',
           date ? `<p class="release-date">${date}</p>` : '',
           '',
-          notes || '_No release notes._',
+          notes,
         ]
           .filter((line) => line !== null)
           .join('\n')
-      })
-      .join('\n\n')
+})
+
+const body = entries.length
+  ? entries.join('\n\n')
   : '\nRelease history could not be loaded. It is always available on GitHub.\n'
 
 await mkdir(DIR, { recursive: true })
@@ -160,7 +200,6 @@ for (const file of await readdir(DIR)) {
   if (/^\d+\.\d+\.\d+\.md$/.test(file)) await rm(resolve(DIR, file))
 }
 
-// Kept out of local search, since the stacked page already indexes every release once.
 for (const release of releases) {
   const version = release.tag_name.replace(/^v/, '')
   const date = formatDate(release.published_at)
@@ -169,7 +208,6 @@ title: Reikai ${version}
 description: ${date ? `Changelog for Reikai ${version}, released ${date}.` : `Changelog for Reikai ${version}.`}
 lastUpdated: false
 editLink: false
-search: false
 prev:
   text: Changelogs
   link: /changelogs/
