@@ -26,8 +26,7 @@ It is built first for one person's daily reading, so the feature set follows one
 releases arrive when they arrive. Everything on this page is real and documented; nothing is a
 roadmap promise.
 
-The [documentation](/docs/guides/getting-started) covers both halves: the reading experience
-inherited from Mihon, in guides adapted from theirs, and what Reikai adds, which is written down
-nowhere else.
+The [documentation](/docs/guides/getting-started) covers what Reikai adds, along with the reading
+features it inherits from Mihon, in guides adapted from theirs.
 
 </div>
