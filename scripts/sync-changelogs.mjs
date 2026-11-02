@@ -1,5 +1,6 @@
-// Generates the Changelogs page, every stable release stacked newest first, and one page per release
-// at /changelogs/<version> so a single release can be linked to.
+// Generates the Changelogs page, the latest release in full above a list of the older ones, and one
+// page per release at /changelogs/<version>, which is where each older release is read and searched.
+// Stacking them all ran to 136,000px on a phone.
 //
 // This writes real markdown rather than rendering releases in a Vue component, because VitePress
 // builds the "On this page" outline, the heading anchors and the local search index from the
@@ -135,7 +136,7 @@ const body = releases.length
         const version = release.tag_name.replace(/^v/, '')
         const latest = index === 0 ? ' <Badge type="tip" text="Latest" />' : ''
         const date = formatDate(release.published_at)
-        const notes = notesByTag.get(release.tag_name)
+        const notes = index === 0 ? notesByTag.get(release.tag_name) || '_No release notes._' : ''
         // No explicit `---` between releases: VitePress already draws a border above every h2, so
         // an <hr> as well renders two rules stacked. The version links to its own page; the heading's
         // anchor is taken from its text, so existing #0-3-2 style links keep working.
@@ -144,7 +145,7 @@ const body = releases.length
           '',
           date ? `<p class="release-date">${date}</p>` : '',
           '',
-          notes || '_No release notes._',
+          notes,
         ]
           .filter((line) => line !== null)
           .join('\n')
@@ -160,7 +161,6 @@ for (const file of await readdir(DIR)) {
   if (/^\d+\.\d+\.\d+\.md$/.test(file)) await rm(resolve(DIR, file))
 }
 
-// Kept out of local search, since the stacked page already indexes every release once.
 for (const release of releases) {
   const version = release.tag_name.replace(/^v/, '')
   const date = formatDate(release.published_at)
@@ -169,7 +169,6 @@ title: Reikai ${version}
 description: ${date ? `Changelog for Reikai ${version}, released ${date}.` : `Changelog for Reikai ${version}.`}
 lastUpdated: false
 editLink: false
-search: false
 prev:
   text: Changelogs
   link: /changelogs/

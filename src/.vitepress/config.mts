@@ -227,6 +227,26 @@ export default defineConfig({
       md.use(tabsMarkdownPlugin)
       // Same reason as CROSS_BUILD: a doc link into the other build is absolute, and VitePress only adds
       // its new-tab attributes to a link that has no target yet.
+      // A wide table cannot fit a phone, so CSS stacks each row there, and a stacked cell needs its
+      // column's name beside it. Two columns already fit, so those stay tables.
+      md.core.ruler.push('stacking_tables', (state) => {
+        const tokens = state.tokens
+        tokens.forEach((table, start) => {
+          if (table.type !== 'table_open') return
+          const headers: string[] = []
+          const cells: [token: (typeof tokens)[number], column: number][] = []
+          let column = 0
+          for (let i = start + 1; tokens[i].type !== 'table_close'; i++) {
+            const token = tokens[i]
+            if (token.type === 'th_open') headers.push((tokens[i + 1].children ?? []).map((child) => child.content).join(''))
+            else if (token.type === 'tr_open') column = 0
+            else if (token.type === 'td_open') cells.push([token, column++])
+          }
+          // VitePress writes the <table> tag itself and drops any class, so these labels are also how
+          // the CSS finds a table to stack.
+          if (headers.length > 2) cells.forEach(([token, index]) => token.attrSet('data-label', headers[index] ?? ''))
+        })
+      })
       md.core.ruler.push('cross_build_links', (state) => {
         for (const block of state.tokens) {
           for (const token of block.children ?? []) {
@@ -243,25 +263,23 @@ export default defineConfig({
     logo: '/logo.webp',
 
     nav: [
+      { ...rootLink('Download', '/download/'), activeMatch: '^/download' },
+      { text: 'Docs', link: '/docs/guides/getting-started', activeMatch: '^/docs/' },
+      { ...rootLink('Changelogs', '/changelogs/'), activeMatch: '^/changelogs' },
       {
-        // Mihon's shape: one "Get" entry rather than top-level items competing for the same intent. It
-        // also holds the site's other pages, which the docs sidebar leaves out.
-        text: 'Get Reikai',
-        activeMatch: '^/(download|changelogs|related|privacy)',
+        text: 'More',
+        activeMatch: '^/(related|privacy)',
         items: [
-          rootLink('Download', '/download/'),
-          rootLink('Changelogs', '/changelogs/'),
           rootLink('Related apps', '/related/'),
           rootLink('Privacy policy', '/privacy/'),
-        ],
-      },
-      { text: 'Docs', link: '/docs/guides/getting-started', activeMatch: '^/docs/' },
-      {
-        // Absolute on both sides, because each build's links are otherwise resolved under its own base.
-        text: PREVIEW ? 'Nightly' : 'Stable',
-        items: [
-          { text: 'Stable', link: `${SITE_ORIGIN}/docs/about`, ...CROSS_BUILD },
-          { text: 'Nightly', link: `${SITE_ORIGIN}/preview/docs/about`, ...CROSS_BUILD },
+          {
+            // Absolute on both sides, because each build's links are otherwise resolved under its own base.
+            text: PREVIEW ? 'Reading the Nightly docs' : 'Reading the Stable docs',
+            items: [
+              { text: 'Stable', link: `${SITE_ORIGIN}/docs/about`, ...CROSS_BUILD },
+              { text: 'Nightly', link: `${SITE_ORIGIN}/preview/docs/about`, ...CROSS_BUILD },
+            ],
+          },
         ],
       },
     ],

@@ -185,6 +185,67 @@ html.dark .only-light {
   margin: 0 auto;
 }
 
+/* Room for a wide screen to be used. Only from 1680px, because VitePress's own rules from 1440px
+   assume the width has been reached, and a larger value makes their padding negative in between. */
+@media (min-width: 1680px) {
+  :root { --vp-layout-max-width: 1680px; }
+  .VPDoc.has-sidebar .container { max-width: 1240px !important; }
+  .VPDoc.has-sidebar .content { max-width: 920px !important; }
+  .VPDoc.has-aside .content-container { max-width: 800px !important; }
+  .vp-doc p,
+  .vp-doc li { font-size: 17px; line-height: 28px; }
+}
+
+/* A two-column table stays a table on a phone, so long text in it has to wrap. */
+@media (max-width: 640px) {
+  .vp-doc td { overflow-wrap: anywhere; }
+  .vp-doc td code { white-space: normal; }
+}
+
+/* On a phone a wide table stacks: each row a block, each cell labelled with its column's name, which
+   the stacking_tables markdown rule writes into data-label. */
+@media (max-width: 640px) {
+  .vp-doc table:has(td[data-label]) { display: block; border: 0; }
+  .vp-doc table:has(td[data-label]) thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+  .vp-doc table:has(td[data-label]) tbody { display: block; }
+  .vp-doc table:has(td[data-label]) tr {
+    display: block;
+    margin-bottom: 12px;
+    padding: 6px 12px;
+    border: 1px solid var(--vp-c-divider);
+    border-radius: 10px;
+    background: var(--vp-c-bg-soft);
+  }
+  .vp-doc table:has(td[data-label]) td {
+    display: block;
+    padding: 6px 0;
+    border: 0;
+    background: none;
+    overflow-wrap: anywhere;
+  }
+  .vp-doc table:has(td[data-label]) td[data-label]:not([data-label=''])::before {
+    content: attr(data-label);
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--vp-c-text-2);
+  }
+}
+
+/* The docs menu opens as a drawer below this width, where each row is a thumb's target. */
+@media (max-width: 959px) {
+  .VPSidebarItem .item .text { padding-top: 10px !important; padding-bottom: 10px !important; }
+}
+
+/* Older releases are one line each in the changelog list, so the headings sit closer than the docs'. */
+.release-date + h2 { margin-top: 24px; }
+
 /* The nav logo, up from the default 24px. The bar is 64px tall, so the mark was sitting small in
    it; VitePress exposes the size as a variable, so this needs no override of its own component. */
 :root {
