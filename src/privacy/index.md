@@ -47,9 +47,9 @@ Signing out stops both. The
 [tracking guide](/docs/guides/tracking) lists every service supported. Three in that list, Komga,
 Kavita and Suwayomi, are servers you run yourself.
 
-**Update checks.** Each time the app starts, it asks GitHub whether a newer release exists. Nightly asks
-its own preview repository. There is no switch for it. A build of your own leaves the updater out unless
-you pass `-Penable-updater` or a `-Pdist` other than `local`.
+**Update checks.** When the app opens, and every six hours while it stays open, it asks GitHub whether a
+newer release exists. Nightly asks its own preview repository. There is no switch for it. A build of your
+own leaves the updater out unless you pass `-Penable-updater` or a `-Pdist` other than `local`.
 
 ## Crash reports and analytics
 
@@ -62,9 +62,9 @@ before first-run setup shows you the two switches. After that, they live in
 <nav to="security-and-privacy"> under **Analytics and Crash logs**.
 :::
 
-- **Send crash logs** sends a report when the app crashes: the stack trace with its error message, plus
-  device details that Google lists as things like the phone model, Android version, and free memory and
-  storage. A report is tied to a random ID for this install, not to your name or any account.
+- **Send crash logs** sends a report when the app crashes, or when background work fails without crashing
+  it: the stack trace with its error message, plus device details that Google lists as things like the
+  phone model, Android version, and free memory and storage. A report is tied to a random ID for this install, not to your name or any account.
 - **Allow analytics** sends only what Google Analytics for Firebase collects on its own, because Reikai
   logs no events of its own and has screen tracking turned off. By Google's description, that is things
   like app opens, session length, app version, device model, Android version and a rough location worked
