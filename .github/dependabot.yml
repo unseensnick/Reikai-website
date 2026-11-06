@@ -10,3 +10,9 @@ updates:
       npm:
         patterns:
           - "*"
+  # The workflow takes GitHub's own actions on major tags, which pick up fixes by themselves; this flags a
+  # new major before GitHub retires the old one's runtime.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
