@@ -42,6 +42,7 @@ Newest first. "Base" is the `refs/mihon-website` SHA compared against.
 
 | Base (mihon website) | Date | Taken | Declined |
 |---|---|---|---|
+| `f02f412` | 2026-11-06 | Nothing. | **Three renovate dependency bumps (mihonapp/website#301, mihonapp/website#303, mihonapp/website#304), per the standing policy.** They move pnpm, `@tanstack/vue-query`, `axios`, the `@mdit` plugin set, `@types/node`, the `@typescript-eslint` pair, `eslint` and `eslint-plugin-vue`, none of which this site declares; its three devDependencies are untouched. This site's own lock was refreshed in the same change (`npm update`, `npm audit fix`), which takes the `vue` patch the earlier declined bumps carried. |
 | `ae9695a` | 2026-10-26 | Nothing. | **Two renovate dependency bumps (mihonapp/website#298, mihonapp/website#299), per the standing policy.** They move pnpm, `@tanstack/vue-query`, the `@mdit` plugin set, the `@typescript-eslint` pair, `eslint`, `markdownlint` and `markdownlint-cli`, none of which this site declares, and patch `markdown-it` and `vue`, which reach it only through VitePress's own lock. Its three devDependencies are untouched. |
 | `ac03fbf` | 2026-10-12 | Nothing. | **A renovate dependency bump (mihonapp/website#297), per the standing policy.** It moves `@tanstack/vue-query`, which this site does not use. |
 | `ae329d6` | 2026-10-12 | Nothing. | **A renovate dependency bump (mihonapp/website#296), per the standing policy on the rows below.** It moves pnpm, `@types/node` and the `@typescript-eslint` pair; none of this site's three devDependencies changes. |
