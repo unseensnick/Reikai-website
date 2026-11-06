@@ -1,0 +1,12 @@
+version: 2
+updates:
+  # Upstream's Renovate bumps are declined (UPSTREAM-SYNC.md), so this is what keeps the site's own
+  # dependencies, and the ones VitePress pulls in, from going stale.
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: monthly
+    groups:
+      npm:
+        patterns:
+          - "*"
