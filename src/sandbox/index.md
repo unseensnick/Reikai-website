@@ -25,7 +25,7 @@ To find every menu, go to <nav to="main_more">.
 :::
 
 ::: info Example: a deep path
-In <nav to="advanced">, try **Clear cache** and **Clear cookies**.
+In <nav to="advanced">, try **Clear cookies** and **Clear WebView data**.
 :::
 
 ::: info Example: an icon-only control
