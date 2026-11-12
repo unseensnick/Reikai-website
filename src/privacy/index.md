@@ -21,7 +21,7 @@ Everything that makes up your library: entries, categories, reading progress and
 chapters, and every setting.
 
 Backups are files on your device: the ones you make go wherever you save them, and automatic ones go to
-the backups folder inside your storage folder, every 12 hours unless you change or turn that off. Reikai
+the `autobackup` folder inside your storage folder, every 12 hours unless you change or turn that off. Reikai
 never uploads them, but if a cloud app syncs the folder they sit in, it will. One backup option,
 **Include sensitive settings**, adds to the file your tracker sign-ins, the bypass proxy's username and
 password, and the sign-ins Reikai keeps for its built-in sources and novel plugins; automatic backups
