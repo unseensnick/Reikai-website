@@ -9,7 +9,7 @@
 
 import { defineLoader } from 'vitepress'
 
-import { allReleases, latestRelease } from '../../../scripts/releases.mjs'
+import { allReleases, latestRelease, trimFooter } from '../../../scripts/releases.mjs'
 
 const STABLE_REPO = 'unseensnick/Reikai'
 const NIGHTLY_REPO = 'unseensnick/Reikai-preview'
@@ -83,21 +83,6 @@ const SUMMARY_LIMIT = 12
 const HIGHLIGHTS_LIMIT = 3
 
 const ALERT_KINDS = ['note', 'tip', 'important', 'warning', 'caution'] as const
-
-/**
- * The notes as the site should read them, without the part written for GitHub.
- *
- * release.yml and nightly.yml end the body with a `<!-->` marker and put the file guidance and the
- * checksums below it, because the in-app update dialog stops reading there. Nothing here stopped,
- * so the download page listed "Which file?" and its bullets as though they were changes.
- */
-function trimFooter(body: string): string {
-  return body
-    .replace(/\r\n/g, '\n')
-    .split('\n<!-->')[0]
-    .split('\n**Full changelog:**')[0]
-    .split('\n### Checksums')[0]
-}
 
 /**
  * Inline markdown down to plain text. This is a teaser with the real thing one link away, so a

@@ -95,3 +95,18 @@ export async function latestRelease(repo) {
   const releases = await allReleases(repo)
   return releases.find((r) => !r.draft && !r.prerelease && r.tag_name) ?? null
 }
+
+/**
+ * The notes as the site should read them, without the part written for GitHub.
+ *
+ * release.yml and nightly.yml end the body with a `<!-->` marker and put the file guidance and the
+ * checksums below it, because the in-app update dialog stops reading there. Nothing here stopped,
+ * so the download page listed "Which file?" and its bullets as though they were changes.
+ */
+export function trimFooter(body) {
+  return body
+    .replace(/\r\n/g, '\n')
+    .split('\n<!-->')[0]
+    .split('\n**Full changelog:**')[0]
+    .split('\n### Checksums')[0]
+}

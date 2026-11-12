@@ -4,10 +4,11 @@ import { EDIT_REF, PREVIEW, SITE_ORIGIN } from '../../scripts/env.mjs'
 import { existsSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { defineConfig, type HeadConfig } from 'vitepress'
+import { defineConfig, type HeadConfig, type PageData } from 'vitepress'
 // @ts-expect-error no bundled types
 import shortcodePlugin from 'markdown-it-shortcode-tag'
 import { tabsMarkdownPlugin } from 'vitepress-plugin-tabs'
+import { discordEmbed } from './discordEmbed'
 import shortcodes from './shortcodes'
 
 const REPO = 'https://github.com/unseensnick/Reikai'
@@ -31,14 +32,19 @@ const rootLink = (text: string, path: string) =>
 
 const here = dirname(fileURLToPath(import.meta.url))
 
+const SITE_TITLE = PREVIEW ? 'Reikai Nightly' : 'Reikai'
+// PNG, since not every link preview reads the WebP logo.
+const OG_IMAGE = `${SITE_ORIGIN}${BASE}og-image.png`
+
 const DESCRIPTION =
   'Reikai is a free and open source Android app that keeps your manga and light novels in one library, '
   + 'with sources grouped per series, tracking and offline reading.'
 
 // Per page, what a link preview reads: the page's own title, description and address. VitePress
-// writes the description meta itself; the Open Graph and canonical tags are ours. Mihon's
+// writes the description meta itself; the Open Graph, canonical and Discord embed tags are ours. Mihon's
 // generateMeta hook is the reference, without its generated per-page images.
-function pageMeta(relativePath: string, title: string, description: string): HeadConfig[] {
+async function pageMeta(pageData: PageData, title: string, description: string): Promise<HeadConfig[]> {
+  const { relativePath } = pageData
   const path = relativePath.replace(/(^|\/)index\.md$/, '$1').replace(/\.md$/, '')
   const url = `${SITE_ORIGIN}${BASE}${path}`
   return [
@@ -48,6 +54,10 @@ function pageMeta(relativePath: string, title: string, description: string): Hea
     ['meta', { property: 'og:description', content: description }],
     ['meta', { name: 'twitter:title', content: title }],
     ['meta', { name: 'twitter:description', content: description }],
+    ...await discordEmbed(
+      { relativePath, title: pageData.title || SITE_TITLE, description, url },
+      { label: SITE_TITLE, origin: SITE_ORIGIN, docs: `${SITE_ORIGIN}${BASE}`, image: OG_IMAGE },
+    ),
   ]
 }
 
@@ -167,7 +177,7 @@ function existingPages(items: SidebarItem[]): SidebarItem[] {
 }
 
 export default defineConfig({
-  title: PREVIEW ? 'Reikai Nightly' : 'Reikai',
+  title: SITE_TITLE,
   // A local review build points its cross-links at localhost, which VitePress otherwise reports as dead.
   ignoreDeadLinks: SITE_ORIGIN.startsWith('http://localhost') ? 'localhostLinks' : false,
   base: BASE,
@@ -184,7 +194,7 @@ export default defineConfig({
     ? undefined
     : { hostname: SITE_ORIGIN, transformItems: (items) => items.filter((item) => !item.url.startsWith('sandbox')) },
   transformHead: ({ pageData, title, description }) =>
-    pageMeta(pageData.relativePath, title, description || DESCRIPTION),
+    pageMeta(pageData, title, description || DESCRIPTION),
   // The nav bar's labels ("Appearance" among them) come first in the page, so a search engine
   // writing its own snippet starts there. data-nosnippet keeps them out; it applies to a div.
   transformHtml: (code) => code.replace('<div class="VPNavBar"', '<div data-nosnippet class="VPNavBar"'),
@@ -202,13 +212,12 @@ export default defineConfig({
   srcExclude: PREVIEW ? ['index.md', 'download/**', 'changelogs/**', 'privacy/**', 'related/**'] : [],
   head: [
     ['link', { rel: 'icon', href: `${BASE}favicon.svg` }],
-    ['meta', { property: 'og:site_name', content: PREVIEW ? 'Reikai Nightly' : 'Reikai' }],
+    ['meta', { property: 'og:site_name', content: SITE_TITLE }],
     ['meta', { property: 'og:type', content: 'website' }],
     ['meta', { property: 'og:locale', content: 'en_US' }],
-    // PNG, since not every link preview reads the WebP logo.
-    ['meta', { property: 'og:image', content: `${SITE_ORIGIN}${BASE}og-image.png` }],
+    ['meta', { property: 'og:image', content: OG_IMAGE }],
     ['meta', { name: 'twitter:card', content: 'summary' }],
-    ['meta', { name: 'twitter:image', content: `${SITE_ORIGIN}${BASE}og-image.png` }],
+    ['meta', { name: 'twitter:image', content: OG_IMAGE }],
     // Kept out of search results, so a search for a setting lands on the docs for the release people run.
     ...(PREVIEW ? [['meta', { name: 'robots', content: 'noindex' }] as [string, Record<string, string>]] : []),
   ],
