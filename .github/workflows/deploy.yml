@@ -37,10 +37,6 @@ concurrency:
 env:
   APP_REPO: unseensnick/Reikai
   NIGHTLY_REPO: unseensnick/Reikai-preview
-  # The working branch nightlies are built from. Used when the latest nightly's commit cannot be read,
-  # and for the preview docs' "Edit this page" link, since GitHub cannot edit at a commit. Set the
-  # PREVIEW_BRANCH repository variable when a new release branch starts.
-  PREVIEW_BRANCH: ${{ vars.PREVIEW_BRANCH || 'feat/0.4.0' }}
 
 jobs:
   build:
@@ -56,6 +52,16 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          # The working branch nightlies are built from: the newest feat/ or release/ branch, or main
+          # between cycles, read from the app repo so a new cycle needs no setting changed. Used when the
+          # nightly's commit cannot be read, and for the preview docs' "Edit this page" link, since
+          # GitHub cannot edit at a commit.
+          branch=$(gh api "repos/$APP_REPO/branches" --paginate --jq '.[].name' \
+            | grep -E '^(feat|release)/' | awk -F/ '{print $2, $0}' | sort -V | tail -1 | cut -d' ' -f2)
+          branch=${branch:-main}
+          echo "Working branch $branch."
+          echo "branch=$branch" >> "$GITHUB_OUTPUT"
+
           # Each nightly's tag hangs on a stamp commit in the nightly repo whose message names the app
           # commit it was built from, as "nightly r<N> (<sha>)" (the app repo's stamp-nightly-commit.sh
           # writes it, and scripts/ci/lib.sh reads it the same way). Drafts have no tag, so skip them.
@@ -74,8 +80,8 @@ jobs:
             echo "Nightly docs from $tag at ${sha:0:9}."
             echo "ref=$sha" >> "$GITHUB_OUTPUT"
           else
-            echo "::warning::Could not read the latest nightly's commit, so the nightly docs are built from $PREVIEW_BRANCH."
-            echo "ref=$PREVIEW_BRANCH" >> "$GITHUB_OUTPUT"
+            echo "::warning::Could not read the latest nightly's commit, so the nightly docs are built from $branch."
+            echo "ref=$branch" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Check out the app repo at main for the stable docs
@@ -128,7 +134,7 @@ jobs:
           REIKAI_SITE_VARIANT: preview
           REIKAI_APP_REPO: ${{ github.workspace }}/app-preview
           REIKAI_DOCS_REF: ${{ steps.nightly.outputs.ref }}
-          REIKAI_EDIT_REF: ${{ env.PREVIEW_BRANCH }}
+          REIKAI_EDIT_REF: ${{ steps.nightly.outputs.branch }}
 
       - uses: actions/configure-pages@v6
 
